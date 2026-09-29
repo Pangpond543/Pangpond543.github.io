@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>วงจรตรรกะ — สร้างคอมพิวเตอร์จากศูนย์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#010204;--bg2:#03050b;--bg3:#050810;--panel:#020408;
+  --border:#243a56;--neon-blue:#00c8ff;--neon-green:#00ff88;
+  --neon-red:#ff3366;--neon-yellow:#ffdd00;--neon-purple:#c84fff;
+  --neon-orange:#ff8c00;--text:#c0d2e2;--text-dim:#506e88;
+  --text-bright:#dbeaff;--wire-off:#0c1828;--wire-on:#00c8ff;
+  --gate-fill:#020408;--gate-stroke:#1b4470;
+  --font-th:'Sarabun','Noto Sans Thai',sans-serif;
+  --glow-blue:0 0 7px #00c8ff,0 0 18px #00c8ff3b;
+  --glow-green:0 0 7px #00ff88,0 0 18px #00ff883b;
+  --glow-red:0 0 7px #ff3366,0 0 18px #ff33663b;
+  --glow-yellow:0 0 7px #ffdd00,0 0 18px #ffdd003b;
+  --glow-orange:0 0 7px #ff8c00,0 0 18px #ff8c003b;
+  --radius:12px;--transition:0.3s cubic-bezier(0.4,0,0.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  background:
+    radial-gradient(circle at 12% 8%, rgba(0, 200, 255, 0.025), transparent 28%),
+    radial-gradient(circle at 82% 4%, rgba(0, 200, 255, 0.015), transparent 30%),
+    var(--bg);
+  color:var(--text);font-family:var(--font-th);line-height:1.7;min-height:100vh;overflow-x:hidden;
+}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,200,255,0.009) 2px,rgba(0,200,255,0.009) 4px);pointer-events:none;z-index:9999}
+
+/* BACKGROUND CANVAS & AMBIENT GLOW */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+}
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(0, 200, 255, 0.15), transparent 28%);
+}
+
+/* NAV */
+#top-nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(1,2,4,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:4px;height:54px;overflow-x:auto;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-btn{flex-shrink:0;background:none;border:none;color:var(--text-dim);font-family:var(--font-th);font-size:0.82rem;padding:6px 12px;border-radius:6px;cursor:pointer;transition:var(--transition);white-space:nowrap}
+.nav-btn:hover,.nav-btn.active{color:var(--neon-blue);background:rgba(0,200,255,0.08)}
+.nav-logo{font-size:1rem;font-weight:800;color:var(--neon-blue);text-shadow:var(--glow-blue);margin-right:16px;flex-shrink:0;letter-spacing:-0.5px}
+.progress-bar{position:fixed;top:54px;left:0;right:0;height:2px;background:var(--border);z-index:999}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--neon-blue),var(--neon-green));width:0%;transition:width 0.3s;box-shadow:0 0 6px var(--neon-blue)}
+
+h1{font-size:2.4rem;font-weight:800;letter-spacing:-1px;line-height:1.2}
+h2{font-size:1.8rem;font-weight:700;letter-spacing:-0.5px}
+h3{font-size:1.3rem;font-weight:600}
+h4{font-size:1.05rem;font-weight:600}
+p{color:var(--text);line-height:1.8}
+strong{color:var(--neon-yellow)}
+code{font-family:'Courier New',monospace;background:#071220;border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-size:0.85em;color:var(--neon-blue)}
+.site-wrap{max-width:1100px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:80px 24px 40px}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(0,200,255,0.045) 0%,transparent 70%),radial-gradient(ellipse 40% 30% at 20% 80%,rgba(0,255,136,0.025) 0%,transparent 60%),radial-gradient(ellipse 30% 40% at 80% 20%,rgba(200,79,255,0.025) 0%,transparent 60%)}
+.hero-content{position:relative;z-index:1}
+.hero-badge{display:inline-block;border:1px solid var(--neon-blue);color:var(--neon-blue);font-size:0.75rem;padding:4px 14px;border-radius:100px;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;box-shadow:var(--glow-blue);animation:pulse-glow 3s ease-in-out infinite}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 6px #00c8ff44,0 0 12px #00c8ff22}50%{box-shadow:0 0 12px #00c8ff88,0 0 28px #00c8ff44}}
+.hero-title{font-size:clamp(2rem,5vw,3.5rem);font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#e8f4ff 0%,#00c8ff 50%,#00ff88 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:1.15rem;color:var(--text-dim);max-width:600px;margin:0 auto 32px}
+.hero-cta{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--neon-blue),#0080ff);color:#fff;font-family:var(--font-th);font-size:1rem;font-weight:700;padding:14px 32px;border-radius:100px;border:none;cursor:pointer;box-shadow:0 0 20px rgba(0,200,255,0.4);transition:var(--transition);text-decoration:none}
+.hero-cta:hover{transform:translateY(-2px);box-shadow:0 4px 30px rgba(0,200,255,0.6)}
+
+/* SECTIONS */
+.section{padding:80px 0;border-bottom:1px solid var(--border)}
+.section-header{display:flex;align-items:center;gap:16px;margin-bottom:40px}
+.section-num{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;flex-shrink:0}
+.num-blue{background:rgba(0,200,255,0.15);color:var(--neon-blue);border:1px solid rgba(0,200,255,0.3)}
+.num-green{background:rgba(0,255,136,0.15);color:var(--neon-green);border:1px solid rgba(0,255,136,0.3)}
+.num-purple{background:rgba(200,79,255,0.15);color:var(--neon-purple);border:1px solid rgba(200,79,255,0.3)}
+.num-yellow{background:rgba(255,221,0,0.15);color:var(--neon-yellow);border:1px solid rgba(255,221,0,0.3)}
+.num-orange{background:rgba(255,140,0,0.15);color:var(--neon-orange);border:1px solid rgba(255,140,0,0.3)}
+.num-red{background:rgba(255,51,102,0.15);color:var(--neon-red);border:1px solid rgba(255,51,102,0.3)}
+.section-title-wrap h2{color:var(--text-bright)}
+.section-title-wrap p{color:var(--text-dim);font-size:0.95rem;margin-top:4px}
+
+/* PANELS */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px}
+.panel-title{font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);margin-bottom:16px}
+.info-box{background:rgba(0,200,255,0.04);border:1px solid rgba(0,200,255,0.35);border-radius:10px;padding:16px 20px;margin:16px 0}
+.info-box.green{background:rgba(0,255,136,0.04);border-color:rgba(0,255,136,0.35)}
+.info-box.yellow{background:rgba(255,221,0,0.04);border-color:rgba(255,221,0,0.35)}
+.info-box.red{background:rgba(255,51,102,0.04);border-color:rgba(255,51,102,0.35)}
+.info-box.orange{background:rgba(255,140,0,0.04);border-color:rgba(255,140,0,0.35)}
+.info-box.purple{background:rgba(200,79,255,0.04);border-color:rgba(200,79,255,0.35)}
+
+/* BINARY BITS */
+.bit-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:20px 0}
+.bit-switch{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.bit-btn{width:54px;height:54px;border-radius:10px;border:2px solid var(--wire-off);background:var(--gate-fill);color:var(--text-dim);font-size:1.3rem;font-weight:900;font-family:var(--font-th);cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center}
+.bit-btn.on{border-color:var(--neon-blue);background:rgba(0,200,255,0.15);color:var(--neon-blue);box-shadow:var(--glow-blue)}
+.bit-label{font-size:0.72rem;color:var(--text-dim);font-weight:600}
+.bit-val{font-size:0.7rem;color:var(--neon-yellow)}
+.decimal-display{text-align:center;margin:20px 0;font-size:2.5rem;font-weight:900;color:var(--neon-green);text-shadow:var(--glow-green);transition:var(--transition)}
+.decimal-display span{font-size:1rem;color:var(--text-dim)}
+.binary-display{text-align:center;font-family:'Courier New',monospace;font-size:1.8rem;letter-spacing:8px;color:var(--neon-blue);margin:8px 0}
+.bit-explain{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.bit-explain-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;text-align:center;font-size:0.8rem;transition:var(--transition)}
+.bit-explain-item.active{border-color:var(--neon-blue);background:rgba(0,200,255,0.1)}
+.bit-explain-item .val{display:block;font-size:1.1rem;font-weight:700;color:var(--neon-yellow)}
+
+/* ANIMATED DIGIT DISPLAY */
+.anim-digits{display:flex;gap:4px;justify-content:center;align-items:center;margin:12px 0;min-height:52px}
+.anim-digit{
+  font-family:'Share Tech Mono','Courier New',monospace;
+  font-size:2rem;font-weight:900;
+  color:var(--neon-green);
+  background:rgba(0,255,136,0.08);
+  border:1px solid rgba(0,255,136,0.2);
+  border-radius:8px;
+  width:40px;height:52px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+  opacity:0;transform:translateY(10px);
+}
+.anim-digit.visible{opacity:1;transform:translateY(0);box-shadow:0 0 10px rgba(0,255,136,0.3)}
+.anim-digit.pop{animation:digitPop 0.4s ease}
+@keyframes digitPop{0%{transform:scale(1.3) translateY(-4px);color:#fff}100%{transform:scale(1) translateY(0)}}
+
+/* GATE GRID */
+.gate-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin:24px 0}
+.gate-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:var(--transition)}
+.gate-card:hover{border-color:rgba(0,200,255,0.45);box-shadow:0 0 12px rgba(0,200,255,0.08)}
+.gate-card h4{color:var(--neon-blue);margin-bottom:12px;font-size:1rem}
+.gate-svg-wrap{display:flex;justify-content:center;align-items:center;margin:12px 0;height:80px}
+.gate-svg-wrap svg{overflow:visible}
+.gate-inputs{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.gate-input-row{display:flex;align-items:center;gap:10px}
+.gate-input-label{color:var(--text-dim);font-size:0.85rem;width:16px}
+.toggle-btn{width:40px;height:28px;border-radius:6px;border:1px solid var(--wire-off);background:var(--gate-fill);color:var(--text-dim);font-size:0.9rem;font-weight:700;cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center;font-family:'Courier New',monospace}
+.toggle-btn.on{border-color:var(--neon-blue);background:rgba(0,200,255,0.18);color:var(--neon-blue);box-shadow:0 0 6px rgba(0,200,255,0.4)}
+.gate-output-display{display:flex;align-items:center;gap:10px;margin:12px 0;padding:10px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)}
+.output-led{width:18px;height:18px;border-radius:50%;border:2px solid var(--wire-off);background:transparent;transition:var(--transition);flex-shrink:0}
+.output-led.on{border-color:var(--neon-green);background:var(--neon-green);box-shadow:0 0 8px var(--neon-green),0 0 20px rgba(0,255,136,0.5)}
+.output-val{font-family:'Courier New',monospace;font-size:1.2rem;font-weight:700;color:var(--text-dim);transition:var(--transition)}
+.output-val.on{color:var(--neon-green)}
+.truth-table{width:100%;border-collapse:collapse;font-family:'Courier New',monospace;font-size:0.85rem;margin:12px 0}
+.truth-table th{background:var(--bg3);color:var(--text-dim);padding:6px 10px;border:1px solid var(--border);text-align:center;font-size:0.75rem;letter-spacing:1px}
+.truth-table td{padding:6px 10px;border:1px solid var(--border);text-align:center;color:var(--text);transition:var(--transition)}
+.truth-table tr.highlight td{background:rgba(0,200,255,0.1);color:var(--neon-blue)}
+.truth-table td.out-1{color:var(--neon-green);font-weight:700}
+.truth-table td.out-0{color:var(--neon-red)}
+
+/* CIRCUIT CANVAS */
+.circuit-canvas-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:20px 0}
+canvas.circuit-canvas{display:block;width:100%}
+.circuit-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:16px 20px;border-top:1px solid var(--border);background:var(--panel)}
+.ctrl-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font-th);font-size:0.85rem;padding:8px 18px;border-radius:8px;cursor:pointer;transition:var(--transition)}
+.ctrl-btn:hover{border-color:var(--neon-blue);color:var(--neon-blue)}
+.ctrl-btn.primary{background:rgba(0,200,255,0.12);border-color:var(--neon-blue);color:var(--neon-blue)}
+.ctrl-btn.primary:hover{background:rgba(0,200,255,0.22);box-shadow:var(--glow-blue)}
+.ctrl-label{color:var(--text-dim);font-size:0.85rem}
+
+/* 7-SEG — LARGE DISPLAY */
+.seg-display-wrap{display:flex;justify-content:center;margin:24px 0}
+.seg-display{position:relative;width:160px;height:290px}
+.seg{position:absolute;border-radius:5px;transition:background 0.2s,box-shadow 0.25s}
+.seg.on{background:var(--neon-orange)!important;box-shadow:0 0 14px var(--neon-orange),0 0 30px rgba(255,140,0,0.5)}
+.seg-a{width:94px;height:14px;top:4px;left:33px;background:var(--bg3)}
+.seg-b{width:14px;height:92px;top:24px;right:18px;background:var(--bg3)}
+.seg-c{width:14px;height:92px;top:144px;right:18px;background:var(--bg3)}
+.seg-d{width:94px;height:14px;bottom:4px;left:33px;background:var(--bg3)}
+.seg-e{width:14px;height:92px;top:144px;left:18px;background:var(--bg3)}
+.seg-f{width:14px;height:92px;top:24px;left:18px;background:var(--bg3)}
+.seg-g{width:94px;height:14px;top:129px;left:33px;background:var(--bg3)}
+/* Decimal point */
+.seg-dp{width:14px;height:14px;bottom:4px;right:0;border-radius:50%;background:var(--bg3)}
+
+/* SEG BINARY DISPLAY */
+.seg-binary-row{display:flex;gap:6px;justify-content:center;margin:10px 0}
+.seg-bit-box{width:36px;height:36px;border-radius:6px;border:1px solid var(--border);background:var(--gate-fill);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Courier New',monospace;font-size:1rem;font-weight:700;color:var(--text-dim);transition:var(--transition)}
+.seg-bit-box.on{border-color:var(--neon-orange);color:var(--neon-orange);background:rgba(255,140,0,0.12);box-shadow:0 0 8px rgba(255,140,0,0.3)}
+.seg-bit-box .seg-bit-lbl{font-size:0.55rem;color:var(--text-dim);font-family:var(--font-th)}
+
+/* DECODER SECTION */
+.decoder-big-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:700px){.decoder-big-wrap{grid-template-columns:1fr}}
+.decoder-inputs{display:flex;flex-direction:column;gap:10px}
+.decoder-input-row{display:flex;align-items:center;gap:10px}
+.decoder-line-label{font-family:'Courier New',monospace;color:var(--neon-blue);width:80px;font-size:0.9rem}
+.decoder-result{background:var(--bg3);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.decoder-match{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);transition:var(--transition)}
+.decoder-match.matched{border-color:var(--neon-green);background:rgba(0,255,136,0.08)}
+.decoder-match-label{font-size:0.85rem;color:var(--text-dim);flex:1}
+.decoder-match-val{font-family:'Courier New',monospace;font-size:0.9rem;color:var(--text);font-weight:700}
+.decoder-match.matched .decoder-match-val{color:var(--neon-green)}
+
+/* 2-to-4 DECODER VISUALIZER */
+.dec24-wrap{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;margin:16px 0}
+.dec24-input-col{display:flex;flex-direction:column;gap:8px;align-items:center}
+.dec24-output-col{display:flex;flex-direction:column;gap:8px;flex:1;min-width:200px}
+.dec24-out-line{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);transition:all 0.3s;font-family:'Courier New',monospace;font-size:0.9rem}
+.dec24-out-line.active{border-color:var(--neon-green);background:rgba(0,255,136,0.1);box-shadow:0 0 12px rgba(0,255,136,0.15)}
+.dec24-out-led{width:14px;height:14px;border-radius:50%;border:2px solid var(--wire-off);background:transparent;transition:all 0.3s;flex-shrink:0}
+.dec24-out-line.active .dec24-out-led{background:var(--neon-green);border-color:var(--neon-green);box-shadow:0 0 8px var(--neon-green)}
+
+/* ENCODER */
+.enc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:700px){.enc-wrap{grid-template-columns:1fr}}
+.enc-input-btn{width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--gate-fill);color:var(--text);font-family:var(--font-th);font-size:0.9rem;cursor:pointer;transition:var(--transition);text-align:left;margin-bottom:8px}
+.enc-input-btn.active{border-color:var(--neon-purple);background:rgba(200,79,255,0.1);color:var(--neon-purple);box-shadow:0 0 8px rgba(200,79,255,0.2)}
+.enc-output-display{background:var(--bg3);border-radius:10px;padding:20px}
+.enc-bits{display:flex;gap:8px;justify-content:center;margin:12px 0}
+.enc-bit{width:52px;height:52px;border-radius:8px;border:2px solid var(--border);background:var(--gate-fill);font-family:'Courier New',monospace;font-size:1.5rem;font-weight:900;display:flex;align-items:center;justify-content:center;color:var(--text-dim);transition:var(--transition)}
+.enc-bit.on{border-color:var(--neon-purple);color:var(--neon-purple);background:rgba(200,79,255,0.15);box-shadow:0 0 10px rgba(200,79,255,0.4)}
+
+/* ADDER */
+.adder-wrap{overflow-x:auto;margin:20px 0}
+.adder-row{display:flex;align-items:center;justify-content:center;gap:0;min-width:600px}
+.adder-bit{display:flex;flex-direction:column;align-items:center;min-width:56px}
+.adder-bit-input{width:42px;height:42px;border-radius:8px;border:2px solid var(--border);background:var(--gate-fill);color:var(--text-dim);font-size:1.1rem;font-weight:900;font-family:'Courier New',monospace;cursor:pointer;transition:var(--transition);display:flex;align-items:center;justify-content:center}
+.adder-bit-input.on{border-color:var(--neon-blue);background:rgba(0,200,255,0.15);color:var(--neon-blue);box-shadow:var(--glow-blue)}
+.adder-bit-label{font-size:0.65rem;color:var(--text-dim);margin:4px 0}
+.adder-bit-sum{width:42px;height:42px;border-radius:8px;border:2px solid var(--border);background:var(--gate-fill);color:var(--neon-green);font-size:1.1rem;font-weight:900;font-family:'Courier New',monospace;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.adder-carry{font-size:0.65rem;color:var(--neon-yellow);height:16px;display:flex;align-items:center}
+.adder-numbers{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+.adder-num-display{text-align:center}
+.adder-num-val{font-size:2rem;font-weight:900;color:var(--neon-blue);font-family:'Courier New',monospace}
+.adder-num-dec{font-size:1rem;color:var(--neon-green)}
+.adder-num-label{font-size:0.75rem;color:var(--text-dim)}
+.plus-sign{font-size:2rem;color:var(--neon-yellow);align-self:center}
+.equals-sign{font-size:2rem;color:var(--text-dim);align-self:center}
+
+/* CARRY ANIMATION */
+@keyframes carryFlow{0%{opacity:0;transform:translateX(-6px)}100%{opacity:1;transform:translateX(0)}}
+.carry-anim{animation:carryFlow 0.3s ease forwards}
+
+/* MEMORY */
+.latch-display{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin:20px 0}
+.flip-flop-box{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:20px 24px;text-align:center;min-width:140px}
+.ff-label{font-size:0.75rem;color:var(--text-dim);margin-bottom:8px}
+.ff-state{font-size:3rem;font-weight:900;font-family:'Courier New',monospace;color:var(--text-dim);transition:var(--transition)}
+.ff-state.one{color:var(--neon-green);text-shadow:var(--glow-green)}
+.ff-btns{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.ff-btn{background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font-th);font-size:0.8rem;padding:6px 14px;border-radius:6px;cursor:pointer;transition:var(--transition)}
+.ff-btn:hover{border-color:var(--neon-green);color:var(--neon-green)}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:12px;margin:16px 0}
+.step{display:flex;gap:14px;align-items:flex-start}
+.step-num{width:28px;height:28px;border-radius:50%;background:rgba(0,200,255,0.12);border:1px solid rgba(0,200,255,0.3);color:var(--neon-blue);font-size:0.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step-body{font-size:0.92rem;color:var(--text)}
+
+/* NAND BUILDER */
+.nand-builder{display:flex;flex-direction:column;gap:16px}
+.nand-builder-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.nand-op-label{font-size:0.85rem;color:var(--neon-yellow);font-weight:700;width:90px;flex-shrink:0}
+.mini-gate{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-family:'Courier New',monospace;font-size:0.8rem;color:var(--neon-blue)}
+
+/* SUPPORT BTN */
+#support-btn{position:fixed;bottom:20px;left:20px;z-index:500;font-family:var(--font-th);font-size:0.85rem;padding:9px 18px;border-radius:100px;border:1px solid var(--neon-blue);background:rgba(1,2,4,0.95);color:var(--neon-blue);cursor:pointer;transition:var(--transition);backdrop-filter:blur(8px)}
+#support-btn:hover{box-shadow:var(--glow-blue);background:rgba(0,200,255,0.1)}
+
+/* WATERMARK */
+#watermark{position:fixed;bottom:20px;right:20px;z-index:500;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text);opacity:0.28;line-height:1.7;text-align:right;pointer-events:none}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal-box{background:#03070f;border:1px solid var(--border);border-radius:16px;padding:28px 32px;width:min(400px,92vw);position:relative}
+.modal-close{position:absolute;top:14px;right:16px;font-size:1.3rem;cursor:pointer;color:var(--text-dim);background:none;border:none;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-title{font-size:1rem;font-weight:700;color:var(--neon-blue);margin-bottom:16px;font-family:var(--font-th)}
+.bcd-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0}
+.bcd-group{font-family:'Share Tech Mono','Courier New',monospace;font-size:1rem;padding:5px 8px;border-radius:6px;border:1px solid var(--border);color:var(--text-dim);transition:all 0.4s;background:var(--gate-fill)}
+.bcd-group.lit{border-color:var(--neon-green);color:var(--neon-green);background:rgba(0,255,136,0.1);box-shadow:0 0 10px rgba(0,255,136,0.3)}
+.modal-name{text-align:center;font-size:0.9rem;color:var(--text-dim);margin:8px 0 16px}
+.decode-result-wrap{min-height:56px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;margin:10px 0}
+.dec-digit{font-family:'Share Tech Mono','Courier New',monospace;font-size:1.8rem;font-weight:900;color:var(--neon-green);opacity:0;transform:translateY(8px);transition:all 0.35s cubic-bezier(0.4,0,0.2,1);background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.35);border-radius:6px;width:34px;height:44px;display:flex;align-items:center;justify-content:center}
+.dec-digit.show{opacity:1;transform:translateY(0)}
+
+/* CHALLENGE */
+.challenge-box{background:rgba(200,79,255,0.06);border:1px solid rgba(200,79,255,0.35);border-radius:var(--radius);padding:24px;margin:20px 0}
+.challenge-title{color:var(--neon-purple);font-size:1rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.challenge-badge{font-size:0.65rem;background:rgba(200,79,255,0.2);color:var(--neon-purple);padding:2px 8px;border-radius:100px;letter-spacing:1px}
+
+/* ALU explanation panels */
+.alu-flow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0}
+.alu-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center;font-family:'Courier New',monospace;font-size:0.85rem;transition:all 0.3s}
+.alu-box.active{border-color:var(--neon-yellow);color:var(--neon-yellow);box-shadow:0 0 10px rgba(255,221,0,0.25)}
+.alu-arrow{color:var(--text-dim);font-size:1.2rem}
+.carry-chain{display:flex;gap:4px;align-items:center;margin:12px 0;flex-wrap:wrap}
+.carry-cell{padding:4px 8px;border-radius:6px;border:1px solid var(--border);font-family:'Courier New',monospace;font-size:0.8rem;color:var(--text-dim);transition:all 0.4s}
+.carry-cell.active{border-color:var(--neon-yellow);color:var(--neon-yellow);background:rgba(255,221,0,0.1);box-shadow:0 0 8px rgba(255,221,0,0.3)}
+
+@media(max-width:768px){h1{font-size:1.8rem}h2{font-size:1.4rem}.gate-grid{grid-template-columns:1fr}.adder-row{min-width:400px}}
+
+@keyframes flow{0%{stroke-dashoffset:100}100%{stroke-dashoffset:0}}
+.wire-animated{stroke-dasharray:8 4;animation:flow 0.5s linear infinite}
+
+footer{text-align:center;padding:40px 24px;color:var(--text-dim);font-size:0.85rem;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<div class="ambient" aria-hidden="true"></div>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-logo">⚡ ลอจิก</div>
+    <button class="nav-btn active" onclick="navTo('hero')">หน้าแรก</button>
+    <button class="nav-btn" onclick="navTo('s-binary')">ไบนารี</button>
+    <button class="nav-btn" onclick="navTo('s-adder-home')">8-bit Adder</button>
+    <button class="nav-btn" onclick="navTo('s-gates')">Logic Gates</button>
+    <button class="nav-btn" onclick="navTo('s-connect')">ต่อเกต</button>
+    <button class="nav-btn" onclick="navTo('s-decoder')">Decoder</button>
+    <button class="nav-btn" onclick="navTo('s-encoder')">Encoder</button>
+    <button class="nav-btn" onclick="navTo('s-7seg')">7-Segment</button>
+    <button class="nav-btn" onclick="navTo('s-alu')">ALU</button>
+    <button class="nav-btn" onclick="navTo('s-memory')">Memory</button>
+  </div>
+</nav>
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">PP.Thanakorn</div>
+    <h1 class="hero-title">สร้างคอมพิวเตอร์<br>จากศูนย์</h1>
+    <p class="hero-sub">เรียนรู้วงจรตรรกะแบบทีละขั้น เริ่มจากไบต์เดียว<br>ไปจนถึงสร้าง CPU ของตัวเอง 🖥️</p>
+    <a class="hero-cta" onclick="navTo('s-binary')">เริ่มเรียน →</a>
+  </div>
+</section>
+
+<!-- SECTION 1: BINARY -->
+<section class="section" id="s-binary">
+<div class="site-wrap">
+  <div class="section-header">
+    <div class="section-num num-blue">1</div>
+    <div class="section-title-wrap">
+      <h2>ระบบเลขฐานสอง (Binary)</h2>
+      <p>รากฐานของทุกอย่างในคอมพิวเตอร์</p>
+    </div>
+  </div>
+  <div class="info-box">
+    <h4>🤔 ทำไมคอมพิวเตอร์ใช้เลขฐานสอง?</h4>
+    <p>เพราะ CPU ทำงานด้วย <strong>ไฟฟ้า</strong> — มีแค่สองสถานะ คือ <strong>มีไฟ (1)</strong> และ <strong>ไม่มีไฟ (0)</strong>
+    เหมือนสวิตช์ไฟในบ้าน เปิด = 1, ปิด = 0 เมื่อนำมาหลายๆ ตัวมารวมกัน จะแทนตัวเลขใดๆ ก็ได้!</p>
+  </div>
+  <div class="panel">
+    <div class="panel-title">🔢 ค่าของแต่ละบิต — คลิกเพื่อเปิด/ปิด</div>
+    <p style="margin-bottom:16px">แต่ละบิตมีค่าเป็น <strong>เลขยกกำลัง 2</strong> เรียงจากขวาไปซ้าย</p>
+    <div class="bit-row" id="bit-row"></div>
+    <div class="binary-display" id="binary-disp">0 0 0 0 0 0 0 0</div>
+    <div style="text-align:center;font-size:0.85rem;color:var(--text-dim);margin-bottom:8px">ผลลัพธ์ทีละหลัก (เรียลไทม์):</div>
+    <div class="anim-digits" id="anim-digits"></div>
+    <div class="bit-explain" id="bit-explain"></div>
+    <div class="info-box green" id="binary-math-box" style="display:none">
+      <div id="binary-math"></div>
+    </div>
+  </div>
+  <div class="info-box yellow">
+    <h4>💡 เคล็ดลับจำ</h4>
+    <p>บิต 8 ตัว = <strong>1 ไบต์</strong> = แทนตัวเลข 0–255 ได้<br>
+    2⁷=128, 2⁶=64, 2⁵=32, 2⁴=16, 2³=8, 2²=4, 2¹=2, 2⁰=1<br>
+    รวมทุกบิตได้ 128+64+32+16+8+4+2+1 = <strong>255</strong></p>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 2: 8-BIT ADDER (HOME) -->
+<section class="section" id="s-adder-home">
+<div class="site-wrap">
+  <div class="section-header">
+    <div class="section-num num-green">2</div>
+    <div class="section-title-wrap">
+      <h2>เครื่องบวกเลข 8 บิต (8-bit Adder)</h2>
+      <p>บวกเลขแบบที่ CPU ทำจริงๆ ทีละบิต พร้อม Carry</p>
+    </div>
+  </div>
+  <div class="info-box">
+    <h4>🔢 8-bit Adder ทำงานอย่างไร?</h4>
+    <p>CPU บวกเลขด้วยการต่อ <strong>Full Adder หลายๆ ตัวเป็นสาย</strong> — ทุกบิตมี "Carry" ที่ส่งต่อไปบิตถัดไปเหมือนเวลาบวกเลขทศนิยมแล้วทด! ลองกดบิตในแถว A และ B เพื่อดูผล</p>
+  </div>
+  <div class="panel">
+    <div class="panel-title">คลิกบิตใน A และ B เพื่อเปิด/ปิด</div>
+    <div class="adder-wrap">
+      <div style="text-align:center;font-size:0.75rem;color:var(--text-dim);margin-bottom:6px">Carry ↑</div>
+      <div class="adder-row" id="adder-sum-row" style="margin-bottom:4px"></div>
+      <div class="adder-row" id="adder-a-row" style="margin-bottom:4px"></div>
+      <div class="adder-row" id="adder-b-row"></div>
+    </div>
+    <div class="adder-numbers">
+      <div class="adder-num-display">
+        <div class="adder-num-label">A (binary)</div>
+        <div class="adder-num-val" id="adder-a-bin">00000000</div>
+        <div class="adder-num-dec" id="adder-a-dec">= 0</div>
+      </div>
+      <div class="plus-sign">+</div>
+      <div class="adder-num-display">
+        <div class="adder-num-label">B (binary)</div>
+        <div class="adder-num-val" id="adder-b-bin">00000000</div>
+        <div class="adder-num-dec" id="adder-b-dec">= 0</div>
+      </div>
+      <div class="equals-sign">=</div>
+      <div class="adder-num-display">
+        <div class="adder-num-label">ผลรวม (Sum)</div>
+        <div class="adder-num-val" id="adder-sum-bin" style="color:var(--neon-green)">00000000</div>
+        <div class="adder-num-dec" id="adder-sum-dec" style="color:var(--neon-yellow)">= 0</div>
+      </div>
+    </div>
+    <div class="info-box" id="adder-msg">ลองกดบิตด้านบน...</div>
+  </div>
+  <div class="info-box yellow">
+    <h4>⚠️ Overflow คืออะไร?</h4>
+    <p>ถ้าผลลัพธ์เกิน 255 (8 บิต) จะเกิด <strong>Overflow</strong> — carry bit ที่ 9 จะหายไป เหมือนนาฬิกาที่วนกลับ 0 ใหม่ เช่น 200 + 100 = 300 แต่ใน 8 บิตจะได้ 44 (= 300 - 256)</p>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 3: LOGIC GATES -->
+<section class="section" id="s-gates">
+<div class="site-wrap">
+  <div class="section-header">
+    <div class="section-num num-purple">3</div>
+    <div class="section-title-wrap">
+      <h2>Logic Gates</h2>
+      <p>อิฐก้อนแรกของคอมพิวเตอร์ทุกเครื่อง</p>
+    </div>
+  </div>
+  <div class="info-box">
+    <h4>🎯 Logic Gates คืออะไร?</h4>
+    <p>Logic Gates คือ <strong>วงจรอิเล็กทรอนิกส์ขนาดเล็ก</strong> ที่รับสัญญาณ 0/1 เข้า และส่งสัญญาณ 0/1 ออก
+    ตาม "กฎ" ของมัน — เหมือนคนทำงานที่มีกฎเฉพาะตัว คลิก Input เพื่อดูผลคำตอบ</p>
+  </div>
+  <div class="gate-grid" id="gate-grid"></div>
+</div>
+</section>
+
+<!-- SECTION 4: CONNECTING GATES -->
+<section class="section" id="s-connect">
+<div class="site-wrap">
+  <div class="section-header">
+    <div class="section-num num-yellow">4</div>
+    <div class="section-title-wrap">
+      <h2>การต่อประตูตรรกะ</h2>
+      <p>ส่วนที่สำคัญที่สุด — คิดแบบวิศวกรจริงๆ</p>
+    </div>
+  </div>
+  <div class="info-box">
+    <h4>🔗 แนวคิดหลักในการต่อเกต</h4>
+    <p>ก่อนต่อเกต ให้ถามตัวเองว่า: <strong>"Output ควรเป็น 1 เมื่อเงื่อนไขอะไร?"</strong><br>
+    แล้วเลือกเกตที่ตรงกับเงื่อนไขนั้น เหมือนวางแผนก่อนสร้างบ้าน!</p>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body">กำหนดเป้าหมาย: <strong>ต้องการให้ output = 1 เมื่ออะไร?</strong></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">เขียนตาราง truth table ทุกกรณี</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">หาว่าเกตไหนตรงกับ pattern นั้น</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">ต่อ output ของเกตหนึ่งเข้า input ของอีกเกต</div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body">ทดสอบทุก input combination ให้ครบ</div></div>
+  </div>
+  <div class="panel" style="margin-top:24px">
+    <div class="panel-title">⭐ NAND — ราชาแห่งเกต (Universal Gate)</div>
+    <p>NAND พิเศษมาก เพราะ <strong>สร้างเกตอื่นทุกตัวได้!</strong> ในชีวิตจริง chip ส่วนใหญ่ใช้ NAND เท่านั้น</p>
+    <div class="nand-builder" id="nand-builder" style="margin-top:20px"></div>
+  </div>
+  <div class="panel" style="margin-top:20px">
+    <div class="panel-title">🔧 สร้าง XOR จาก NAND ทีละขั้น</div>
+    <p>XOR ซับซ้อนกว่า — ต้องใช้ NAND 4 ตัว ดูสัญญาณไหลผ่านแต่ละเกต!</p>
+    <div class="circuit-canvas-wrap">
+      <canvas class="circuit-canvas" id="xor-canvas" height="220"></canvas>
+      <div class="circuit-controls">
+        <label class="ctrl-label">Input A:</label>
+        <button class="ctrl-btn primary" id="xor-a-btn" onclick="toggleXOR('a')">0</button>
+        <label class="ctrl-label">Input B:</label>
+        <button class="ctrl-btn primary" id="xor-b-btn" onclick="toggleXOR('b')">0</button>
+        <label class="ctrl-label">Output: <span id="xor-out" style="color:var(--neon-green);font-weight:700">0</span></label>
+      </div>
+    </div>
+    <div class="info-box green" style="margin-top:12px">
+      <div id="xor-explain">XOR = 1 เมื่อ Input แตกต่างกัน (A≠B). ขณะนี้ A=0, B=0 → Output = <strong>0</strong></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 5: DECODER -->
+<section class="section" id="s-decoder">
+<div class="site-wrap">
+  <div class="section-header">
+    <div class="section-num num-yellow">5</div>
+    <div class="section-title-wrap">
+      <h2>ดีโคเดอร์ (Decoder)</h2>
+      <p>วงจรที่แปลงรหัสไบนารีเป็น output เดียว</p>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h4>🔍 Decoder คืออะไร — อธิบายง่ายๆ</h4>
+    <p>Decoder คือ <strong>วงจรถอดรหัส</strong> ที่ช่วยเลือกเปิดไฟหรือส่งข้อมูลไปหาอุปกรณ์เป้าหมายตัวเดียวเท่านั้น โดยดูจากรหัสที่เราป้อนเข้ามา<br>
+    เปรียบเสมือน <strong>สวิตช์เลือกช่องทีวี</strong> ที่เมื่อเรากดปุ่มเลือกช่องไหน ทีวีก็จะเปลี่ยนไปฉายช่องนั้นช่องเดียวเท่านั้น!</p>
+  </div>
+
+  <div class="info-box yellow">
+    <h4>📐 ทำงานยังไง?</h4>
+    <p>ถ้ามีสวิตช์ป้อนรหัส 2 ตัว (A1, A0) เราจะเลือกช่องปลายทางได้ 4 ช่องทาง:<br>
+    <strong>00 เลือกช่อง Y0, 01 เลือกช่อง Y1, 10 เลือกช่อง Y2, 11 เลือกช่อง Y3</strong><br>
+    วงจรข้างในใช้เกตพื้นฐานในการตรวจสอบรหัสให้ตรงกับช่องนั้นๆ</p>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body">รับ input binary N บิต เช่น 2 บิต = 4 กรณี</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">แต่ละ output line ต่อจาก AND gate ที่ตรวจจับ pattern เฉพาะ</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">ทุก output = 0 ยกเว้น output ที่ตรงกับ input เท่านั้น</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">ใช้ใน RAM เพื่อเลือก address, ใน 7-Segment เพื่อเลือก segment</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">🎛️ 2-to-4 Decoder — Interactive</div>
+    <p style="margin-bottom:16px">กด A1 และ A0 เพื่อดูว่า output line ไหน active — แต่ละ input combination = output คนละเส้น</p>
+    <div class="dec24-wrap">
+      <div class="dec24-input-col">
+        <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:4px;text-align:center">Input</div>
+        <div style="display:flex;gap:10px">
+          <div style="text-align:center">
+            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:4px">A1</div>
+            <button class="toggle-btn" id="dec24-a1" onclick="toggleDec24('a1')">0</button>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:4px">A0</div>
+            <button class="toggle-btn" id="dec24-a0" onclick="toggleDec24('a0')">0</button>
+          </div>
+        </div>
+        <div style="margin-top:12px;font-family:'Courier New',monospace;font-size:0.8rem;color:var(--text-dim);text-align:center">
+          binary: <span id="dec24-bin" style="color:var(--neon-blue)">00</span><br>
+          decimal: <span id="dec24-dec" style="color:var(--neon-yellow)">0</span>
+        </div>
+      </div>
+      <div style="align-self:center;color:var(--text-dim);font-size:1.5rem;padding:0 8px">→</div>
+      <div class="dec24-output-col">
+        <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:4px">Output (เส้นเดียวที่ active)</div>
+        <div class="dec24-out-line" id="dec24-y0"><div class="dec24-out-led"></div><span style="color:var(--text-dim);font-size:0.8rem">Y0</span><span style="flex:1;text-align:right;font-size:0.75rem;color:var(--text-dim)">A1=0, A0=0</span></div>
+        <div class="dec24-out-line" id="dec24-y1"><div class="dec24-out-led"></div><span style="color:var(--text-dim);font-size:0.8rem">Y1</span><span style="flex:1;text-align:right;font-size:0.75rem;color:var(--text-dim)">A1=0, A0=1</span></div>
+        <div class="dec24-out-line" id="dec24-y2"><div class="dec24-out-led"></div><span style="color:var(--text-dim);font-size:0.8rem">Y2</span><span style="flex:1;text-align:right;font-size:0.75rem;color:var(--text-dim)">A1=1, A0=0</span></div>
+        <div class="dec24-out-line" id="dec24-y3"><div class="dec24-out-led"></div><span style="color:var(--text-dim);font-size:0.8rem">Y3</span><span style="flex:1;text-align:right;font-size:0.75rem;color:var(--text-dim)">A1=1, A0=1</span></div>
+      </div>
+    </div>
+    <div class="info-box" id="dec24-info" style="margin-top:12px">กด A1/A0 เพื่อดูการทำงาน</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">🎛️ 4-bit Pattern Decoder</div>
+    <p style="margin-bottom:16px">ตั้งค่า "เลขเป้าหมาย" ที่ต้องการตรวจจับ แล้วลองปรับ Input ABCD ดูว่าเมื่อใดถึงตรงกัน!</p>
+    <div class="decoder-big-wrap" style="margin-top:20px">
+      <div>
+        <h4 style="margin-bottom:12px;color:var(--neon-blue)">ตั้งค่าเป้าหมาย</h4>
+        <div class="decoder-inputs" id="decoder-target"></div>
+        <div style="margin-top:16px">
+          <h4 style="margin-bottom:12px;color:var(--neon-yellow)">Input ปัจจุบัน</h4>
+          <div class="decoder-inputs" id="decoder-input"></div>
+        </div>
+      </div>
+      <div class="decoder-result" id="decoder-result">
+        <div style="color:var(--text-dim);font-size:0.85rem;margin-bottom:8px">สัญญาณแต่ละบิต:</div>
+      </div>
+    </div>
+    <div class="info-box" id="decoder-status" style="margin-top:16px"><div id="decoder-msg">ลองปรับบิต...</div></div>
+  </div>
+
+  <div class="info-box purple">
+    <h4>🌍 Decoder ใช้ในชีวิตจริงที่ไหน?</h4>
+    <p>
+      • <strong>RAM address decoder</strong> — รับ address binary แล้วเลือก memory cell ที่ถูกต้อง<br>
+      • <strong>7-Segment display driver</strong> — รับ BCD 4 บิต แล้วเปิด segment ที่ถูก<br>
+      • <strong>Multiplexer control</strong> — เลือก input channel ที่ต้องการส่งออก<br>
+      • <strong>Instruction decoder ใน CPU</strong> — รับ opcode แล้วเลือกว่าจะทำ operation ไหน
+    </p>
+  </div>
+
+</div>
+</section>
+
+<!-- SECTION 6: ENCODER -->
+<section class="section" id="s-encoder">
+<div class="site-wrap">
+  <div class="section-header">
+    <div class="section-num num-purple">6</div>
+    <div class="section-title-wrap">
+      <h2>เอนโคเดอร์ (Encoder)</h2>
+      <p>ตรงข้าม Decoder — แปลง input กลับเป็น binary</p>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h4>🔄 Encoder คืออะไร — อธิบายง่ายๆ</h4>
+    <p>Encoder คือ <strong>วงจรเข้ารหัส</strong> ที่ทำงานสลับกับ Decoder เลยครับ มันจะคอยดูว่าปุ่มไหนหรือสวิตช์ตัวไหนถูกกด แล้วส่งรหัสตัวเลข (0 หรือ 1) ออกมาแทนปุ่มนั้น<br>
+    เปรียบเสมือน <strong>แป้นพิมพ์คอมพิวเตอร์</strong> ที่เมื่อเรากดปุ่มตัวอักษรใดปุ่มหนึ่ง แป้นพิมพ์ก็จะแปลงปุ่มนั้นเป็นรหัสคอมพิวเตอร์ส่งไปประมวลผล!</p>
+  </div>
+
+  <div class="info-box yellow">
+    <h4>📐 ทำงานยังไง?</h4>
+    <p>ถ้ามีสวิตช์ให้เราเลือกกด 4 สวิตช์ (I0 ถึง I3) เมื่อเรากดตัวใดตัวหนึ่ง วงจรจะแปลงเป็นรหัส 2 ตัว (A1, A0) ทันที:<br>
+    <strong>กดสวิตช์ I0 ได้รหัส 00, กด I1 ได้รหัส 01, กด I2 ได้รหัส 10, กด I3 ได้รหัส 11</strong></p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">🔌 4-to-2 Encoder — Interactive</div>
+    <p style="margin-bottom:16px">คลิกปุ่ม input เพียงปุ่มเดียว แล้วดู binary output ที่เปลี่ยน</p>
+    <div class="enc-wrap">
+      <div>
+        <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:8px">Input (เลือก 1 เส้น)</div>
+        <button class="enc-input-btn active" id="enc-i0" onclick="selectEnc(0)">I0 — เส้นที่ 0 (ค่า 0)</button>
+        <button class="enc-input-btn" id="enc-i1" onclick="selectEnc(1)">I1 — เส้นที่ 1 (ค่า 1)</button>
+        <button class="enc-input-btn" id="enc-i2" onclick="selectEnc(2)">I2 — เส้นที่ 2 (ค่า 2)</button>
+        <button class="enc-input-btn" id="enc-i3" onclick="selectEnc(3)">I3 — เส้นที่ 3 (ค่า 3)</button>
+      </div>
+      <div class="enc-output-display">
+        <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:8px">Binary Output (A1 A0)</div>
+        <div class="enc-bits">
+          <div style="text-align:center">
+            <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:4px">A1</div>
+            <div class="enc-bit" id="enc-a1">0</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:4px">A0</div>
+            <div class="enc-bit" id="enc-a0">0</div>
+          </div>
+        </div>
+        <div class="info-box" id="enc-info" style="margin-top:12px;font-size:0.85rem">I0 active → A1=0, A0=0</div>
+        <div style="margin-top:12px">
+          <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:6px">วงจรภายใน:</div>
+          <div class="alu-flow" id="enc-circuit"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box purple">
+    <h4>🌍 Encoder ใช้ที่ไหนในชีวิตจริง?</h4>
+    <p>
+      • <strong>แป้นพิมพ์ (Keyboard)</strong> — กดปุ่มหนึ่ง → ส่ง binary keycode ออกไป<br>
+      • <strong>Priority Encoder</strong> — ถ้ามีหลาย input active พร้อมกัน เลือก input ที่ priority สูงสุด<br>
+      • <strong>ADC (Analog to Digital Converter)</strong> — แปลงสัญญาณแอนะล็อกเป็น binary ดิจิทัล<br>
+      • <strong>Mouse/Touchpad</strong> — แปลงตำแหน่ง XY เป็น binary coordinate
+    </p>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 7: 7-SEGMENT -->
+<section class="section" id="s-7seg">
+<div class="site-wrap">
+  <div class="section-header">
+    <div class="section-num num-orange">7</div>
+    <div class="section-title-wrap">
+      <h2>จอแสดงผล 7 ส่วน (7-Segment Display)</h2>
+      <p>เส้น 7 เส้นที่แสดงเลข 0–9</p>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h4>💡 7-Segment ทำงานอย่างไร?</h4>
+    <p>จอ 7-segment มี <strong>segment 7 ส่วน: a, b, c, d, e, f, g</strong> แต่ละส่วนคือ LED หนึ่งดวง<br>
+    Decoder รับ <strong>BCD input 4 บิต (0–9)</strong> แล้วเปิด segment ที่ถูกต้องเพื่อแสดงตัวเลขนั้น<br>
+    ตัวอย่าง: เลข 7 = เปิดเฉพาะ segment a, b, c (ด้านบน + ขวาบน + ขวาล่าง)</p>
+  </div>
+
+  <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;justify-content:center">
+    <div style="text-align:center">
+      <div class="panel-title" style="text-align:center;margin-bottom:12px">จอ 7-Segment</div>
+      <div class="seg-display-wrap">
+        <div class="seg-display" id="seg-display">
+          <div class="seg seg-a" id="seg-a"></div>
+          <div class="seg seg-b" id="seg-b"></div>
+          <div class="seg seg-c" id="seg-c"></div>
+          <div class="seg seg-d" id="seg-d"></div>
+          <div class="seg seg-e" id="seg-e"></div>
+          <div class="seg seg-f" id="seg-f"></div>
+          <div class="seg seg-g" id="seg-g"></div>
+        </div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:8px;font-family:'Courier New',monospace">Segment bits (a b c d e f g):</div>
+      <div class="seg-binary-row" id="seg-binary-row"></div>
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px">BCD input → Decoder → Segments</div>
+    </div>
+
+    <div style="flex:1;min-width:260px">
+      <div class="panel">
+        <div class="panel-title">เลือกตัวเลข 0–9</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:16px" id="seg-digit-btns"></div>
+        <div class="panel-title" style="margin-top:12px">สถานะ Segment แต่ละเส้น</div>
+        <div id="seg-status" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px"></div>
+        <div class="info-box orange" style="margin-top:12px;font-size:0.85rem" id="seg-info">กดตัวเลข 0–9 เพื่อดูว่า segment ไหนติด</div>
+      </div>
+
+      <div class="panel" style="margin-top:12px">
+        <div class="panel-title">ตาราง BCD → Segment</div>
+        <div style="overflow-x:auto">
+          <table class="truth-table" id="seg-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:20px">
+    <div class="panel-title">🎨 สร้างเลขเอง — Toggle แต่ละ Segment</div>
+    <p style="margin-bottom:12px">ลองสร้างรูปร่างเองโดยกด segment ทีละเส้น</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center" id="seg-manual-btns"></div>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 8: ALU -->
+<section class="section" id="s-alu">
+<div class="site-wrap">
+  <div class="section-header">
+    <div class="section-num num-green">8</div>
+    <div class="section-title-wrap">
+      <h2>ALU — Arithmetic Logic Unit</h2>
+      <p>หัวใจของ CPU — บวก ลบ AND OR ทุกอย่างอยู่ที่นี่</p>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <h4>🧠 ALU คืออะไร?</h4>
+    <p>ALU คือวงจรที่ทำ <strong>การคำนวณทั้งหมด</strong> ในคอมพิวเตอร์ ทั้งคณิตศาสตร์ (บวก ลบ) และตรรกศาสตร์ (AND OR XOR)<br>
+    ทุกครั้งที่ CPU รัน instruction เช่น <code>ADD R1, R2</code> — ALU คือตัวที่ทำการบวกนั้น!</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">⚙️ Half Adder — บวก 1 บิต</div>
+    <p style="margin-bottom:12px">Half Adder คือ building block พื้นฐานที่สุด รับ <strong>2 input bits (A, B)</strong> → ให้ <strong>Sum</strong> (XOR) และ <strong>Carry</strong> (AND)</p>
+    <div class="info-box yellow">
+      <p>Sum = A XOR B &nbsp;|&nbsp; Carry = A AND B<br>
+      <strong>ตัวอย่าง:</strong> 1 + 1 = Sum=0, Carry=1 (เหมือนทดเลข 1+1=10 ในฐานสอง)</p>
+    </div>
+    <div class="alu-flow" id="ha-flow">
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:4px">Input</div>
+        <div style="display:flex;gap:8px">
+          <div style="text-align:center"><div style="font-size:0.7rem;color:var(--text-dim)">A</div><button class="toggle-btn" id="ha-a" onclick="toggleHALU('a')">0</button></div>
+          <div style="text-align:center"><div style="font-size:0.7rem;color:var(--text-dim)">B</div><button class="toggle-btn" id="ha-b" onclick="toggleHALU('b')">0</button></div>
+        </div>
+      </div>
+      <div class="alu-arrow">→</div>
+      <div class="alu-box" id="ha-xor-box">XOR<br><span style="font-size:0.7rem">(Sum gate)</span></div>
+      <div class="alu-box" id="ha-and-box">AND<br><span style="font-size:0.7rem">(Carry gate)</span></div>
+      <div class="alu-arrow">→</div>
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:6px">Output</div>
+        <div style="display:flex;gap:10px">
+          <div class="gate-output-display" style="padding:8px 12px"><div class="output-led" id="ha-sum-led"></div><span style="font-size:0.8rem;color:var(--text-dim)">Sum=</span><span class="output-val" id="ha-sum-val">0</span></div>
+          <div class="gate-output-display" style="padding:8px 12px"><div class="output-led" id="ha-carry-led" style="border-color:var(--neon-yellow)"></div><span style="font-size:0.8rem;color:var(--text-dim)">Carry=</span><span class="output-val" id="ha-carry-val" style="color:var(--neon-yellow)">0</span></div>
+        </div>
+      </div>
+    </div>
+    <table class="truth-table" style="max-width:320px;margin-top:12px">
+      <thead><tr><th>A</th><th>B</th><th>Sum</th><th>Carry</th></tr></thead>
+      <tbody>
+        <tr id="ha-row-00"><td>0</td><td>0</td><td class="out-0">0</td><td class="out-0">0</td></tr>
+        <tr id="ha-row-01"><td>0</td><td>1</td><td class="out-1">1</td><td class="out-0">0</td></tr>
+        <tr id="ha-row-10"><td>1</td><td>0</td><td class="out-1">1</td><td class="out-0">0</td></tr>
+        <tr id="ha-row-11"><td>1</td><td>1</td><td class="out-0">0</td><td class="out-1">1</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">⚙️ Full Adder — บวก 1 บิต + Carry-in</div>
+    <p style="margin-bottom:12px">Full Adder เหมือน Half Adder แต่รับ <strong>Carry-in (Cin)</strong> เพิ่มอีก 1 bit — ใช้ต่อกันหลายตัวเป็น ripple-carry adder!</p>
+    <div class="info-box yellow">
+      <p>Sum = A XOR B XOR Cin &nbsp;|&nbsp; Cout = (A AND B) OR (Cin AND (A XOR B))<br>
+      <strong>Full Adder = Half Adder 2 ตัว + OR gate 1 ตัว</strong></p>
+    </div>
+    <div class="alu-flow" id="fa-flow">
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:4px">Input</div>
+        <div style="display:flex;gap:6px">
+          <div style="text-align:center"><div style="font-size:0.7rem;color:var(--text-dim)">A</div><button class="toggle-btn" id="fa-a" onclick="toggleFALU('a')">0</button></div>
+          <div style="text-align:center"><div style="font-size:0.7rem;color:var(--text-dim)">B</div><button class="toggle-btn" id="fa-b" onclick="toggleFALU('b')">0</button></div>
+          <div style="text-align:center"><div style="font-size:0.7rem;color:var(--neon-yellow)">Cin</div><button class="toggle-btn" id="fa-cin" onclick="toggleFALU('c')">0</button></div>
+        </div>
+      </div>
+      <div class="alu-arrow">→</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="alu-box" id="fa-ha1-box">HA1<br><span style="font-size:0.65rem">A XOR B</span></div>
+        <div class="alu-box" id="fa-ha2-box">HA2<br><span style="font-size:0.65rem">+ Cin</span></div>
+        <div class="alu-box" id="fa-or-box">OR<br><span style="font-size:0.65rem">Carries</span></div>
+      </div>
+      <div class="alu-arrow">→</div>
+      <div>
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:6px">Output</div>
+        <div style="display:flex;gap:10px">
+          <div class="gate-output-display" style="padding:8px 12px"><div class="output-led" id="fa-sum-led"></div><span style="font-size:0.8rem;color:var(--text-dim)">Sum=</span><span class="output-val" id="fa-sum-val">0</span></div>
+          <div class="gate-output-display" style="padding:8px 12px"><div class="output-led" id="fa-cout-led" style="border-color:var(--neon-yellow)"></div><span style="font-size:0.8rem;color:var(--text-dim)">Cout=</span><span class="output-val" id="fa-cout-val" style="color:var(--neon-yellow)">0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">⚙️ 4-bit Ripple Carry Adder</div>
+    <p style="margin-bottom:12px">ต่อ Full Adder 4 ตัวเข้าด้วยกัน Carry จาก FA0 → FA1 → FA2 → FA3 เหมือนการ "ทด" เลขทีละหลัก</p>
+    <div class="carry-chain" id="carry-chain">
+      <span style="font-size:0.8rem;color:var(--text-dim)">Carry:</span>
+      <div class="carry-cell" id="cc-in">Cin=0</div>
+      <span style="color:var(--text-dim)">→</span>
+      <div class="carry-cell" id="cc-0">FA0</div>
+      <span style="color:var(--text-dim)">→</span>
+      <div class="carry-cell" id="cc-1">FA1</div>
+      <span style="color:var(--text-dim)">→</span>
+      <div class="carry-cell" id="cc-2">FA2</div>
+      <span style="color:var(--text-dim)">→</span>
+      <div class="carry-cell" id="cc-3">FA3</div>
+      <span style="color:var(--text-dim)">→</span>
+      <div class="carry-cell" id="cc-out">Cout</div>
+    </div>
+    <p style="font-size:0.85rem;color:var(--text-dim);margin-top:8px">ไปที่ส่วน "8-bit Adder" ในหน้าแรกเพื่อทดลองบวกเลขแบบ interactive!</p>
+  </div>
+
+  <div class="info-box green">
+    <h4>🌍 ALU ทำอะไรได้บ้างใน CPU จริง?</h4>
+    <p>
+      • <strong>คณิตศาสตร์:</strong> ADD, SUB, MUL, DIV<br>
+      • <strong>ตรรกศาสตร์:</strong> AND, OR, XOR, NOT<br>
+      • <strong>เปรียบเทียบ:</strong> >, &lt;, == (ผ่าน SUB แล้วดู flag)<br>
+      • <strong>Shift:</strong> เลื่อนบิตซ้าย/ขวา (= คูณ/หารด้วย 2)<br>
+      Intel Core i9 มี ALU หลายร้อยตัวทำงานพร้อมกัน (superscalar execution)!
+    </p>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 9: MEMORY -->
+<section class="section" id="s-memory">
+<div class="site-wrap">
+  <div class="section-header">
+    <div class="section-num num-red">9</div>
+    <div class="section-title-wrap">
+      <h2>หน่วยความจำ (Memory)</h2>
+      <p>วิธีที่วงจรจำค่าได้</p>
+    </div>
+  </div>
+  <div class="info-box">
+    <h4>🧠 วงจรจะ "จำ" ได้อย่างไร?</h4>
+    <p>วงจรดิจิทัลปกติ output ขึ้นอยู่กับ input ณ เวลานั้น แต่ถ้าเราต้องการ "จำ" ค่าไว้ ต้องใช้ <strong>feedback loop</strong> — ส่ง output กลับมาเป็น input ของตัวเอง!</p>
+  </div>
+  <div class="panel">
+    <div class="panel-title">🔄 SR Latch — วงจรจำพื้นฐาน</div>
+    <p>SR Latch ใช้ NOR gate 2 ตัวต่อแบบ cross-coupled เมื่อ SET จะจำ 1, เมื่อ RESET จะจำ 0 แม้ตัด input แล้ว!</p>
+    <div class="latch-display">
+      <div class="flip-flop-box">
+        <div class="ff-label">Q (ค่าที่จำ)</div>
+        <div class="ff-state" id="latch-q">0</div>
+        <div class="ff-btns">
+          <button class="ff-btn" onclick="latchSet()">SET (S=1)</button>
+          <button class="ff-btn" onclick="latchReset()">RESET (R=1)</button>
+        </div>
+      </div>
+      <div class="flip-flop-box">
+        <div class="ff-label">Q̄ (ค่ากลับ)</div>
+        <div class="ff-state" id="latch-qbar">1</div>
+        <div class="ff-btns">
+          <div style="font-size:0.75rem;color:var(--text-dim)">Q̄ = NOT Q<br>เสมอตรงข้ามกับ Q</div>
+        </div>
+      </div>
+    </div>
+    <div class="info-box" id="latch-msg">กด SET หรือ RESET เพื่อดูการทำงาน</div>
+  </div>
+  <div class="info-box green">
+    <strong>🎉 คุณเรียนรู้หลักการพื้นฐานของ CPU ทุกตัวในโลกแล้ว!</strong><br>
+    Intel, Apple M4, ARM — ทั้งหมดสร้างจากหลักการเดียวกับที่คุณเพิ่งเรียน
+  </div>
+</div>
+</section>
+
+<footer>
+  <div class="site-wrap">
+    <p style="color:var(--neon-blue);font-size:1.1rem;font-weight:700;margin-bottom:8px">⚡ วงจรตรรกะ — เรียนรู้ด้วยตัวเอง</p>
+    <p>ทุกคอมพิวเตอร์ในโลก สร้างจากเกตตรรกะง่ายๆ แค่ AND, OR, NOT — ความซับซ้อนเกิดจากการรวมกัน</p>
+    <p style="margin-top:12px;color:var(--text-dim);font-size:0.8rem">ฝากติดตามในTiktokให้ด้วยน้า</p>
+  </div>
+</footer>
+
+<button id="support-btn" onclick="openSupport()">สนับสนุน</button>
+<div id="watermark">TikTok: pangpond_543<br>YT: pp.Thanakorn</div>
+
+<div class="modal-overlay" id="support-modal" onclick="closeSupport(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('support-modal').classList.remove('open')">✕</button>
+    <div class="modal-title">สนับสนุนค่าเทอมปอนด์ 💙</div>
+    <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:12px">เลข PromptPay แบบ BCD (ทุก 4 bit = 1 หลัก):</p>
+    <div class="bcd-row" id="bcd-row">
+      <span class="bcd-group" data-d="0">0000</span>
+      <span class="bcd-group" data-d="9">1001</span>
+      <span class="bcd-group" data-d="9">1001</span>
+      <span class="bcd-group" data-d="6">0110</span>
+      <span class="bcd-group" data-d="2">0010</span>
+      <span class="bcd-group" data-d="3">0011</span>
+      <span class="bcd-group" data-d="5">0101</span>
+      <span class="bcd-group" data-d="3">0011</span>
+      <span class="bcd-group" data-d="4">0100</span>
+      <span class="bcd-group" data-d="9">1001</span>
+    </div>
+    <div class="modal-name">ธนกร ดำริกิจเจริญ</div>
+    <button class="ctrl-btn primary" style="width:100%;margin-bottom:12px" onclick="decodeBCD()">แปลเลข Binary ทีละหลัก</button>
+    <div class="decode-result-wrap" id="decode-digits"></div>
+    <div id="decode-final" style="text-align:center;font-size:0.85rem;color:var(--text-dim);min-height:20px;margin-top:6px"></div>
+  </div>
+</div>
+
+<script>
+// ─── INTERACTIVE GRID BACKGROUND ──────────────────────
+(() => {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d', { alpha: true });
+  const root = document.documentElement;
+  const pointer = { x: innerWidth / 2, y: innerHeight / 2, tx: innerWidth / 2, ty: innerHeight / 2 };
+  const particles = [];
+  const ripples = [];
+  const trails = [];
+  let w = 0, h = 0, frame = 0;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = innerWidth; h = innerHeight;
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    particles.length = 0;
+    const count = Math.min(105, Math.max(46, Math.floor(w * h / 19000)));
+    for (let i = 0; i < count; i++) particles.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - .5) * .32, vy: (Math.random() - .5) * .32, r: Math.random() * 1.5 + .7 });
+  }
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('pointermove', event => {
+    pointer.tx = event.clientX; pointer.ty = event.clientY;
+    root.style.setProperty('--mx', `${event.clientX / Math.max(w, 1) * 100}%`);
+    root.style.setProperty('--my', `${event.clientY / Math.max(h, 1) * 100}%`);
+    trails.push({ x: event.clientX, y: event.clientY, a: .24 });
+    if (frame % 9 === 0) ripples.push({ x: event.clientX, y: event.clientY, r: 0, a: .18 });
+    if (trails.length > 26) trails.shift();
+    if (ripples.length > 8) ripples.shift();
+  }, { passive: true });
+
+  function grid() {
+    const s = w < 680 ? 36 : 48;
+    const ox = ((pointer.x - w / 2) * .014 + frame * .07) % s;
+    const oy = ((pointer.y - h / 2) * .014 + frame * .05) % s;
+    
+    // Create radial gradient for dynamic grid lines glow around pointer
+    const grad = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, 220);
+    grad.addColorStop(0, 'rgba(66, 218, 255, 0.12)');   // Brightest highlight under mouse
+    grad.addColorStop(0.4, 'rgba(66, 218, 255, 0.075)'); // Smooth gradient fade
+    grad.addColorStop(1, 'rgba(66, 218, 255, 0.038)');   // Standard faint grid lines far away
+    
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1.25; // Slightly thicker lines for visibility
+    for (let x = ox; x < w; x += s) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = oy; y < h; y += s) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+  }
+
+  function draw() {
+    if (reduced) return;
+    frame++;
+    pointer.x += (pointer.tx - pointer.x) * .08;
+    pointer.y += (pointer.ty - pointer.y) * .08;
+    ctx.clearRect(0, 0, w, h);
+    grid();
+    for (const p of particles) {
+      const dx = pointer.x - p.x, dy = pointer.y - p.y, d = Math.hypot(dx, dy) || 1;
+      if (d < 170) { p.vx -= dx / d * .025 * (1 - d / 170); p.vy -= dy / d * .025 * (1 - d / 170); }
+      p.x += p.vx; p.y += p.vy; p.vx *= .994; p.vy *= .994;
+      if (p.x < -20) p.x = w + 20; if (p.x > w + 20) p.x = -20; if (p.y < -20) p.y = h + 20; if (p.y > h + 20) p.y = -20;
+      ctx.fillStyle = 'rgba(75, 238, 255, 0.14)';
+      ctx.shadowColor = 'rgba(75, 238, 255, 0.1)';
+      ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    for (let i = 0; i < particles.length; i++) for (let j = i + 2; j < particles.length; j += 5) {
+      const a = particles[i], b = particles[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (d < 115) { ctx.strokeStyle = `rgba(66, 218, 255, ${0.03 * (1 - d / 115)})`; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+    }
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const r = ripples[i]; r.r += 3.2; r.a *= .965;
+      ctx.strokeStyle = `rgba(72, 255, 207, ${r.a})`; ctx.lineWidth = 1.8; ctx.shadowColor = 'rgba(72, 255, 207, 0.28)'; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2); ctx.stroke(); ctx.shadowBlur = 0;
+      if (r.a < .015) ripples.splice(i, 1);
+    }
+    for (let i = trails.length - 1; i >= 0; i--) {
+      const t = trails[i], p = trails[i - 1] || t; t.a *= .92;
+      ctx.strokeStyle = `rgba(66, 218, 255, ${t.a})`; ctx.lineWidth = 2.4; ctx.shadowColor = 'rgba(66, 218, 255, 0.35)'; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(t.x, t.y); ctx.stroke(); ctx.shadowBlur = 0;
+      if (t.a < .02) trails.splice(i, 1);
+    }
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  ripples.push({ x: pointer.x, y: pointer.y, r: 0, a: .2 });
+  draw();
+})();
+
+// ─── UTILITIES ───────────────────────────────────────
+function $(id){return document.getElementById(id)}
+function bitsToDecimal(bits){return bits.reduce((a,b,i)=>a+(b<<(bits.length-1-i)),0)}
+function padBin(n,len){return n.toString(2).padStart(len,'0')}
+
+// ─── BINARY ──────────────────────────────────────────
+const BITS=8, BIT_VALS=[128,64,32,16,8,4,2,1];
+let bitState=new Array(8).fill(0);
+let animDigitTimeout=null;
+
+function initBinary(){
+  const row=$('bit-row'), explain=$('bit-explain');
+  BIT_VALS.forEach((val,i)=>{
+    const sw=document.createElement('div');
+    sw.className='bit-switch';
+    sw.innerHTML=`<button class="bit-btn" id="bit-btn-${i}" onclick="toggleBit(${i})">0</button><span class="bit-label">บิต ${7-i}</span><span class="bit-val">${val}</span>`;
+    row.appendChild(sw);
+    const ex=document.createElement('div');
+    ex.className='bit-explain-item';ex.id=`bit-ex-${i}`;
+    ex.innerHTML=`<span class="val">${val}</span><span>${val}×0</span>`;
+    explain.appendChild(ex);
+  });
+  buildAnimDigits(0);
+  updateBinaryDisplay();
+}
+
+function buildAnimDigits(dec){
+  const wrap=$('anim-digits');
+  wrap.innerHTML='';
+  const s=dec.toString();
+  s.split('').forEach((d,i)=>{
+    const el=document.createElement('div');
+    el.className='anim-digit';
+    el.id=`adig-${i}`;
+    el.textContent=d;
+    wrap.appendChild(el);
+  });
+  // animate in sequentially
+  s.split('').forEach((_,i)=>{
+    setTimeout(()=>{
+      const el=$(`adig-${i}`);
+      if(el){el.classList.add('visible');el.classList.add('pop');setTimeout(()=>el.classList.remove('pop'),400);}
+    },i*90);
+  });
+}
+
+function toggleBit(i){bitState[i]^=1;updateBinaryDisplay();}
+
+function updateBinaryDisplay(){
+  const dec=bitsToDecimal(bitState);
+  bitState.forEach((b,i)=>{
+    const btn=$(`bit-btn-${i}`);
+    btn.textContent=b; btn.className=`bit-btn${b?' on':''}`;
+    const ex=$(`bit-ex-${i}`);
+    ex.className=`bit-explain-item${b?' active':''}`;
+    ex.innerHTML=`<span class="val">${BIT_VALS[i]}</span><span>${BIT_VALS[i]}×${b}</span>`;
+  });
+  $('binary-disp').textContent=bitState.join(' ');
+  buildAnimDigits(dec);
+  const active=bitState.map((b,i)=>b?BIT_VALS[i]:null).filter(v=>v!==null);
+  if(active.length>0){
+    $('binary-math-box').style.display='block';
+    $('binary-math').innerHTML='🧮 '+active.join(' + ')+' = <strong style="color:var(--neon-green)">'+dec+'</strong>';
+  } else {$('binary-math-box').style.display='none';}
+}
+
+// ─── 8-BIT ADDER ─────────────────────────────────────
+let adderA=new Array(8).fill(0), adderB=new Array(8).fill(0);
+
+function initAdder(){
+  const rowA=$('adder-a-row'),rowB=$('adder-b-row'),rowSum=$('adder-sum-row');
+  for(let i=0;i<8;i++){
+    const bitA=document.createElement('div');bitA.className='adder-bit';
+    bitA.innerHTML=`<div class="adder-bit-label">A[${7-i}]</div><div class="adder-bit-input" id="aa-${i}" onclick="toggleAdder('a',${i})">0</div>`;
+    rowA.appendChild(bitA);
+    const bitB=document.createElement('div');bitB.className='adder-bit';
+    bitB.innerHTML=`<div class="adder-bit-label">B[${7-i}]</div><div class="adder-bit-input" id="ab-${i}" onclick="toggleAdder('b',${i})">0</div>`;
+    rowB.appendChild(bitB);
+    const bitS=document.createElement('div');bitS.className='adder-bit';
+    bitS.innerHTML=`<div class="adder-carry" id="ac-${i}"></div><div class="adder-bit-sum" id="as-${i}">0</div><div class="adder-bit-label">S[${7-i}]</div>`;
+    rowSum.appendChild(bitS);
+  }
+  updateAdder();
+}
+
+function toggleAdder(which,i){
+  if(which==='a')adderA[i]^=1; else adderB[i]^=1;
+  updateAdder();
+}
+
+function updateAdder(){
+  const a=bitsToDecimal(adderA),b=bitsToDecimal(adderB);
+  const sum=a+b,sumBin=padBin(sum&0xFF,8),overflow=sum>255;
+  adderA.forEach((v,i)=>{const el=$(`aa-${i}`);el.textContent=v;el.className=`adder-bit-input${v?' on':''}`;});
+  adderB.forEach((v,i)=>{const el=$(`ab-${i}`);el.textContent=v;el.className=`adder-bit-input${v?' on':''}`;});
+  let carry=0; const carries=[],sums=[];
+  for(let i=7;i>=0;i--){
+    const ai=adderA[i],bi=adderB[i],s=ai^bi^carry,c=(ai&bi)|(ai&carry)|(bi&carry);
+    sums.unshift(s);carries.unshift(carry);carry=c;
+  }
+  sums.forEach((s,i)=>{
+    const el=$(`as-${i}`);el.textContent=s;
+    if(s)el.style.color='var(--neon-green)'; else el.style.color='var(--text-dim)';
+    const ce=$(`ac-${i}`);ce.textContent=carries[i]?'c':'';
+    ce.style.color=carries[i]?'var(--neon-yellow)':'transparent';
+  });
+  $('adder-a-bin').textContent=padBin(a,8);$('adder-a-dec').textContent='= '+a;
+  $('adder-b-bin').textContent=padBin(b,8);$('adder-b-dec').textContent='= '+b;
+  $('adder-sum-bin').textContent=sumBin;
+  $('adder-sum-dec').textContent='= '+sum+(overflow?' (overflow! ≥256)':'');
+  $('adder-msg').innerHTML=overflow
+    ?`⚠️ <strong>Overflow!</strong> ผลลัพธ์ ${sum} เกิน 8 บิต — ต้องใช้ 9 บิต (carry out = 1)`
+    :`✅ ${a} + ${b} = <strong>${sum}</strong> = <code>${sumBin}</code>`;
+}
+
+// ─── LOGIC GATES ─────────────────────────────────────
+const GATES=[
+  {id:'not',name:'NOT Gate (ประตูกลับ)',color:'var(--neon-blue)',inputs:['A'],logic:([a])=>a^1,
+   truth:[['0','1'],['1','0']],truthHead:['A','Q = NOT A'],
+   explain:'NOT คือ "ตรงข้าม" — ถ้า input 0 จะ output 1, ถ้า input 1 จะ output 0',
+   example:'สวิตช์แบบ "กลับด้าน": เปิดไฟ = ปิดระบบ',
+   svgPath:`<g transform="translate(0,-20)"><polygon points="10,10 50,30 10,50" fill="var(--gate-fill)" stroke="var(--neon-blue)" stroke-width="2"/><circle cx="53" cy="30" r="4" fill="none" stroke="var(--neon-blue)" stroke-width="2"/><line x1="0" y1="30" x2="10" y2="30" stroke="var(--neon-blue)" stroke-width="2"/><line x1="57" y1="30" x2="70" y2="30" stroke="var(--neon-blue)" stroke-width="2"/><text x="30" y="34" fill="var(--neon-blue)" font-size="8" text-anchor="middle" font-family="monospace">NOT</text></g>`},
+  {id:'and',name:'AND Gate (ประตูและ)',color:'var(--neon-green)',inputs:['A','B'],logic:([a,b])=>a&b,
+   truth:[['0','0','0'],['0','1','0'],['1','0','0'],['1','1','1']],truthHead:['A','B','Q'],
+   explain:'AND = "และ" — output = 1 เมื่อ input ทุกตัวเป็น 1 เท่านั้น',example:'ประตูนิรภัย: เปิดได้เมื่อ กดรหัส AND ใช้บัตร',
+   svgPath:`<g transform="translate(0,-20)"><path d="M10,10 L10,50 L40,50 Q65,50 65,30 Q65,10 40,10 Z" fill="var(--gate-fill)" stroke="var(--neon-green)" stroke-width="2"/><line x1="0" y1="20" x2="10" y2="20" stroke="var(--neon-green)" stroke-width="2"/><line x1="0" y1="40" x2="10" y2="40" stroke="var(--neon-green)" stroke-width="2"/><line x1="65" y1="30" x2="75" y2="30" stroke="var(--neon-green)" stroke-width="2"/><text x="37" y="34" fill="var(--neon-green)" font-size="8" text-anchor="middle" font-family="monospace">AND</text></g>`},
+  {id:'or',name:'OR Gate (ประตูหรือ)',color:'var(--neon-purple)',inputs:['A','B'],logic:([a,b])=>a|b,
+   truth:[['0','0','0'],['0','1','1'],['1','0','1'],['1','1','1']],truthHead:['A','B','Q'],
+   explain:'OR = "หรือ" — output = 1 เมื่อ input อย่างน้อยหนึ่งตัวเป็น 1',example:'กริ่งประตู: ดังเมื่อ กดกริ่งหน้า OR กดกริ่งหลัง',
+   svgPath:`<g transform="translate(0,-20)"><path d="M10,10 Q25,30 10,50 Q40,50 55,30 Q40,10 10,10 Z" fill="var(--gate-fill)" stroke="var(--neon-purple)" stroke-width="2"/><line x1="0" y1="20" x2="17" y2="20" stroke="var(--neon-purple)" stroke-width="2"/><line x1="0" y1="40" x2="17" y2="40" stroke="var(--neon-purple)" stroke-width="2"/><line x1="55" y1="30" x2="65" y2="30" stroke="var(--neon-purple)" stroke-width="2"/><text x="36" y="34" fill="var(--neon-purple)" font-size="8" text-anchor="middle" font-family="monospace">OR</text></g>`},
+  {id:'xor',name:'XOR Gate (ประตูพิเศษ)',color:'var(--neon-yellow)',inputs:['A','B'],logic:([a,b])=>a^b,
+   truth:[['0','0','0'],['0','1','1'],['1','0','1'],['1','1','0']],truthHead:['A','B','Q'],
+   explain:'XOR = "แตกต่าง" — output = 1 เมื่อ input ต่างกัน นี่คือพื้นฐานของการบวก binary!',example:'เช็คว่า 2 ไฟล์เหมือนกันไหม',
+   svgPath:`<g transform="translate(0,-20)"><path d="M13,10 Q28,30 13,50 Q43,50 58,30 Q43,10 13,10 Z" fill="var(--gate-fill)" stroke="var(--neon-yellow)" stroke-width="2"/><path d="M8,10 Q23,30 8,50" fill="none" stroke="var(--neon-yellow)" stroke-width="2"/><line x1="0" y1="20" x2="17" y2="20" stroke="var(--neon-yellow)" stroke-width="2"/><line x1="0" y1="40" x2="17" y2="40" stroke="var(--neon-yellow)" stroke-width="2"/><line x1="58" y1="30" x2="68" y2="30" stroke="var(--neon-yellow)" stroke-width="2"/><text x="36" y="34" fill="var(--neon-yellow)" font-size="8" text-anchor="middle" font-family="monospace">XOR</text></g>`},
+  {id:'nand',name:'NAND Gate (Universal)',color:'var(--neon-orange)',inputs:['A','B'],logic:([a,b])=>(a&b)^1,
+   truth:[['0','0','1'],['0','1','1'],['1','0','1'],['1','1','0']],truthHead:['A','B','Q'],
+   explain:'NAND = NOT(AND) — ตรงข้ามกับ AND! พิเศษ: ใช้ NAND สร้างเกตอื่นทุกตัวได้',example:'CPU จริงๆ ส่วนใหญ่สร้างจาก NAND gate ทั้งนั้น',
+   svgPath:`<g transform="translate(0,-20)"><path d="M10,10 L10,50 L40,50 Q65,50 65,30 Q65,10 40,10 Z" fill="var(--gate-fill)" stroke="var(--neon-orange)" stroke-width="2"/><circle cx="68" cy="30" r="4" fill="none" stroke="var(--neon-orange)" stroke-width="2"/><line x1="0" y1="20" x2="10" y2="20" stroke="var(--neon-orange)" stroke-width="2"/><line x1="0" y1="40" x2="10" y2="40" stroke="var(--neon-orange)" stroke-width="2"/><line x1="72" y1="30" x2="80" y2="30" stroke="var(--neon-orange)" stroke-width="2"/><text x="37" y="34" fill="var(--neon-orange)" font-size="8" text-anchor="middle" font-family="monospace">NAND</text></g>`},
+  {id:'nor',name:'NOR Gate (ประตูหรือกลับ)',color:'var(--neon-red)',inputs:['A','B'],logic:([a,b])=>(a|b)^1,
+   truth:[['0','0','1'],['0','1','0'],['1','0','0'],['1','1','0']],truthHead:['A','B','Q'],
+   explain:'NOR = NOT(OR) — output = 1 เฉพาะเมื่อ input ทุกตัวเป็น 0',example:'ระบบ alarm: ดังเมื่อทุกประตูปิดหมด',
+   svgPath:`<g transform="translate(0,-20)"><path d="M10,10 Q25,30 10,50 Q40,50 55,30 Q40,10 10,10 Z" fill="var(--gate-fill)" stroke="var(--neon-red)" stroke-width="2"/><circle cx="58" cy="30" r="4" fill="none" stroke="var(--neon-red)" stroke-width="2"/><line x1="0" y1="20" x2="17" y2="20" stroke="var(--neon-red)" stroke-width="2"/><line x1="0" y1="40" x2="17" y2="40" stroke="var(--neon-red)" stroke-width="2"/><line x1="62" y1="30" x2="70" y2="30" stroke="var(--neon-red)" stroke-width="2"/><text x="34" y="34" fill="var(--neon-red)" font-size="8" text-anchor="middle" font-family="monospace">NOR</text></g>`},
+];
+const gateState={};
+
+function initGates(){
+  const grid=$('gate-grid');
+  GATES.forEach(gate=>{
+    gateState[gate.id]=new Array(gate.inputs.length).fill(0);
+    const card=document.createElement('div');
+    card.className='gate-card';card.id=`gate-card-${gate.id}`;
+    let ttHTML=`<table class="truth-table"><thead><tr>${gate.truthHead.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+    gate.truth.forEach(row=>{
+      const key=row.slice(0,-1).join('');
+      ttHTML+=`<tr id="tt-${gate.id}-${key}">${row.map((v,i)=>`<td class="${i===row.length-1?(v==='1'?'out-1':'out-0'):''}">${v}</td>`).join('')}</tr>`;
+    });
+    ttHTML+=`</tbody></table>`;
+    let inputsHTML='';
+    gate.inputs.forEach((lbl,i)=>{
+      inputsHTML+=`<div class="gate-input-row"><span class="gate-input-label">${lbl}</span><button class="toggle-btn" id="gi-${gate.id}-${i}" onclick="toggleGateInput('${gate.id}',${i})">0</button><span style="font-size:0.8rem;color:var(--text-dim)">→ wire</span></div>`;
+    });
+    card.innerHTML=`
+      <h4 style="color:${gate.color}">${gate.name}</h4>
+      <div class="gate-svg-wrap"><svg width="100" height="60" viewBox="-5 0 95 60">${gate.svgPath}</svg></div>
+      <div class="gate-inputs">${inputsHTML}</div>
+      <div class="gate-output-display"><div class="output-led" id="led-${gate.id}"></div><span style="color:var(--text-dim);font-size:0.85rem">Output Q =</span><span class="output-val" id="ov-${gate.id}">0</span></div>
+      <details style="margin-top:8px"><summary style="cursor:pointer;color:var(--text-dim);font-size:0.8rem;user-select:none">▶ Truth Table</summary>${ttHTML}</details>
+      <div class="info-box" style="margin-top:10px;padding:10px 12px;font-size:0.82rem"><div style="margin-bottom:6px">${gate.explain}</div><div style="color:var(--text-dim)">💼 ${gate.example}</div></div>
+    `;
+    grid.appendChild(card);
+    updateGateOutput(gate.id);
+  });
+}
+
+function toggleGateInput(gateId,inputIdx){gateState[gateId][inputIdx]^=1;updateGateOutput(gateId);}
+
+function updateGateOutput(gateId){
+  const gate=GATES.find(g=>g.id===gateId);
+  const inputs=gateState[gateId];
+  const out=gate.logic(inputs);
+  inputs.forEach((v,i)=>{const btn=$(`gi-${gateId}-${i}`);btn.textContent=v;btn.className=`toggle-btn${v?' on':''}`;});
+  const led=$(`led-${gateId}`),ov=$(`ov-${gateId}`);
+  led.className=`output-led${out?' on':''}`;ov.textContent=out;ov.className=`output-val${out?' on':''}`;
+  const key=inputs.join('');
+  gate.truth.forEach(row=>{const el=$(`tt-${gateId}-${row.slice(0,-1).join('')}`);if(el)el.className='';});
+  const cur=$(`tt-${gateId}-${key}`);if(cur)cur.className='highlight';
+}
+
+// ─── NAND BUILDER ─────────────────────────────────────
+const NAND_CONFIGS=[
+  {label:'NOT จาก NAND',desc:'ต่อ input เดียวกันเข้า NAND ทั้งสองช่อง → NAND(A,A) = NOT A',formula:'NOT A = NAND(A, A)',inputs:['A'],logic:([a])=>(a&a)^1},
+  {label:'AND จาก NAND',desc:'NAND แล้วต่อเข้า NOT (NAND อีกตัว) → AND(A,B)',formula:'AND = NAND(NAND(A,B), NAND(A,B))',inputs:['A','B'],logic:([a,b])=>a&b},
+  {label:'OR จาก NAND',desc:'NOT A → NAND1, NOT B → NAND2 แล้วต่อเข้า NAND3',formula:'OR = NAND(NAND(A,A), NAND(B,B))',inputs:['A','B'],logic:([a,b])=>a|b},
+];
+const nandState=NAND_CONFIGS.map(c=>new Array(c.inputs.length).fill(0));
+
+function initNandBuilder(){
+  const wrap=$('nand-builder');
+  NAND_CONFIGS.forEach((cfg,ci)=>{
+    const row=document.createElement('div');row.className='panel';row.style.marginBottom='0';
+    let inputsHTML=cfg.inputs.map((lbl,ii)=>`<div class="gate-input-row"><span class="gate-input-label">${lbl}</span><button class="toggle-btn" id="nand-${ci}-${ii}" onclick="toggleNand(${ci},${ii})">0</button></div>`).join('');
+    row.innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span class="nand-op-label">${cfg.label}</span><span class="mini-gate">${cfg.formula}</span></div><p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:10px">${cfg.desc}</p><div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap"><div class="gate-inputs">${inputsHTML}</div><div style="display:flex;align-items:center;gap:10px"><span style="color:var(--text-dim);font-size:0.85rem">Output =</span><div class="output-led" id="nled-${ci}"></div><span class="output-val" id="nov-${ci}">0</span></div></div>`;
+    wrap.appendChild(row);updateNand(ci);
+  });
+}
+
+function toggleNand(ci,ii){nandState[ci][ii]^=1;updateNand(ci);}
+function updateNand(ci){
+  const cfg=NAND_CONFIGS[ci],inputs=nandState[ci],out=cfg.logic(inputs);
+  inputs.forEach((v,ii)=>{const btn=$(`nand-${ci}-${ii}`);if(btn){btn.textContent=v;btn.className=`toggle-btn${v?' on':''}`;} });
+  const led=$(`nled-${ci}`),ov=$(`nov-${ci}`);
+  if(led)led.className=`output-led${out?' on':''}`;
+  if(ov){ov.textContent=out;ov.className=`output-val${out?' on':''}`;}
+}
+
+// ─── XOR CANVAS ───────────────────────────────────────
+let xorA=0,xorB=0;
+function toggleXOR(which){
+  if(which==='a')xorA^=1; else xorB^=1;
+  $(`xor-${which}-btn`).textContent=which==='a'?xorA:xorB;
+  $(`xor-${which}-btn`).className=(which==='a'?xorA:xorB)?'ctrl-btn primary on':'ctrl-btn primary';
+  drawXORCanvas();
+}
+function drawXORCanvas(){
+  const canvas=$('xor-canvas');
+  const dpr=window.devicePixelRatio||1,W=canvas.offsetWidth,H=220;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const g1=(xorA&xorB)^1,g2=(xorA&g1)^1,g3=(xorB&g1)^1,g4=(g2&g3)^1;
+  $('xor-out').textContent=g4;
+  $('xor-explain').innerHTML=`<strong>XOR step-by-step:</strong><br>G1=NAND(A=${xorA},B=${xorB})=<span style="color:var(--neon-yellow)">${g1}</span> | G2=NAND(A,G1)=<span style="color:var(--neon-yellow)">${g2}</span> | G3=NAND(B,G1)=<span style="color:var(--neon-yellow)">${g3}</span> | G4=NAND(G2,G3)=<span style="color:var(--neon-green);font-size:1.1em"><strong>${g4}</strong></span> ← XOR`;
+  ctx.clearRect(0,0,W,H);
+  function wire(x1,y1,x2,y2,sig){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=sig?'#00c8ff':'#0c1b2c';ctx.lineWidth=2.5;ctx.shadowBlur=sig?8:0;ctx.shadowColor='#00c8ff';ctx.stroke();ctx.shadowBlur=0;}
+  function gateBox(x,y,label,val,w=60,h=36){const clr=val?'#00c8ff':'#0c2035';ctx.fillStyle='#020408';ctx.strokeStyle=clr;ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(x,y,w,h,6);ctx.fill();ctx.stroke();if(val){ctx.shadowBlur=8;ctx.shadowColor='#00c8ff';}ctx.fillStyle=val?'#00c8ff':'#506e88';ctx.font='bold 11px monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,x+w/2,y+h/2);ctx.shadowBlur=0;ctx.beginPath();ctx.arc(x+w+5,y+h/2,4,0,Math.PI*2);ctx.strokeStyle=clr;ctx.lineWidth=1.5;ctx.stroke();}
+  function inputLabel(x,y,lbl,val){ctx.fillStyle=val?'#00c8ff':'#5a7a95';ctx.font='bold 14px monospace';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(lbl+'='+val,x,y);}
+  const lx=60,gx1=140,gx2=260,gx3=380,ay=55,by=150,g1y=100,g2y=55,g3y=150,g4y=100;
+  inputLabel(10,ay,'A',xorA);inputLabel(10,by,'B',xorB);
+  wire(lx,ay,gx1,g1y+5,xorA);wire(lx,by,gx1,g1y+25,xorB);wire(lx,ay,gx2,g2y+5,xorA);wire(lx,by,gx2,g3y+25,xorB);
+  gateBox(gx1,g1y,'NAND',g1);wire(gx1+65,g1y+18,gx2,g2y+25,g1);wire(gx1+65,g1y+18,gx2,g3y+5,g1);
+  gateBox(gx2,g2y,'NAND',g2);gateBox(gx2,g3y,'NAND',g3);wire(gx2+65,g2y+18,gx3,g4y+5,g2);wire(gx2+65,g3y+18,gx3,g4y+25,g3);
+  gateBox(gx3,g4y,'NAND',g4);wire(gx3+65,g4y+18,W-20,g4y+18,g4);
+  ctx.fillStyle=g4?'#00ff88':'#5a7a95';ctx.font='bold 14px monospace';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(`OUT=${g4}`,W-18,g4y+18);
+}
+window.addEventListener('resize',()=>{if($('xor-canvas'))drawXORCanvas();});
+
+// ─── 2-to-4 DECODER ───────────────────────────────────
+let dec24={a1:0,a0:0};
+function toggleDec24(bit){dec24[bit]^=1;const btn=$(`dec24-${bit}`);btn.textContent=dec24[bit];btn.className=`toggle-btn${dec24[bit]?' on':''}`;updateDec24();}
+function updateDec24(){
+  const idx=dec24.a1*2+dec24.a0;
+  $('dec24-bin').textContent=`${dec24.a1}${dec24.a0}`;
+  $('dec24-dec').textContent=idx;
+  for(let i=0;i<4;i++){
+    const el=$(`dec24-y${i}`);
+    el.classList.toggle('active',i===idx);
+  }
+  const exprs=['(NOT A1) AND (NOT A0)','(NOT A1) AND A0','A1 AND (NOT A0)','A1 AND A0'];
+  $('dec24-info').innerHTML=`✅ A1=${dec24.a1}, A0=${dec24.a0} (= ${idx}) → <strong>Y${idx} active</strong><br><span style="font-size:0.8rem;color:var(--text-dim)">Y${idx} = ${exprs[idx]}</span>`;
+}
+
+// ─── 4-bit PATTERN DECODER ────────────────────────────
+let decoderTarget=[0,0,1,0],decoderInput=[0,0,0,0];
+const DECODER_LABELS=['D (บิต3)','C (บิต2)','B (บิต1)','A (บิต0)'];
+function initDecoder(){
+  const tDiv=$('decoder-target'),iDiv=$('decoder-input');
+  decoderTarget.forEach((v,i)=>{
+    const row=document.createElement('div');row.className='decoder-input-row';
+    row.innerHTML=`<span class="decoder-line-label">${DECODER_LABELS[i]}</span><button class="toggle-btn" id="dt-${i}" onclick="toggleDecoderTarget(${i})">${v}</button><span style="font-size:0.8rem;color:var(--text-dim)">เป้าหมาย</span>`;
+    tDiv.appendChild(row);
+  });
+  decoderInput.forEach((v,i)=>{
+    const row=document.createElement('div');row.className='decoder-input-row';
+    row.innerHTML=`<span class="decoder-line-label">${DECODER_LABELS[i]}</span><button class="toggle-btn" id="di-${i}" onclick="toggleDecoderInput(${i})">${v}</button><span style="font-size:0.8rem;color:var(--text-dim)">input</span>`;
+    iDiv.appendChild(row);
+  });
+  updateDecoder();
+}
+function toggleDecoderTarget(i){decoderTarget[i]^=1;updateDecoder();}
+function toggleDecoderInput(i){decoderInput[i]^=1;updateDecoder();}
+function updateDecoder(){
+  decoderTarget.forEach((v,i)=>{const btn=$(`dt-${i}`);btn.textContent=v;btn.className=`toggle-btn${v?' on':''}`;});
+  decoderInput.forEach((v,i)=>{const btn=$(`di-${i}`);btn.textContent=v;btn.className=`toggle-btn${v?' on':''}`;});
+  const result=$('decoder-result');
+  result.innerHTML='<div style="color:var(--text-dim);font-size:0.85rem;margin-bottom:8px">สัญญาณแต่ละบิต:</div>';
+  let allMatch=true;
+  decoderTarget.forEach((t,i)=>{
+    const inp=decoderInput[i],match=(t===inp),op=t===1?'ผ่านตรง':'NOT',sig=t===1?inp:(inp^1);
+    if(!match)allMatch=false;
+    const div=document.createElement('div');div.className=`decoder-match${match?' matched':''}`;
+    div.innerHTML=`<div class="output-led${sig?' on':''}"></div><span class="decoder-match-label">${DECODER_LABELS[i]}: target=${t}, input=${inp} → ${op}</span><span class="decoder-match-val">${sig} ${match?'✓':''}</span>`;
+    result.appendChild(div);
+  });
+  const sb=$('decoder-status');sb.className=`info-box${allMatch?' green':''}`;
+  $('decoder-msg').innerHTML=allMatch
+    ?`🎯 <strong>ตรงกัน!</strong> ดีโคเดอร์ตรวจจับรูปแบบ <code>${decoderTarget.join('')}</code> สำเร็จ!`
+    :`⏳ ยังไม่ตรง — input = <code>${decoderInput.join('')}</code>, ต้องการ <code>${decoderTarget.join('')}</code>`;
+}
+
+// ─── ENCODER ──────────────────────────────────────────
+let encSelected=0;
+const ENC_LABELS=['I0 — เส้นที่ 0 (ค่า 0)','I1 — เส้นที่ 1 (ค่า 1)','I2 — เส้นที่ 2 (ค่า 2)','I3 — เส้นที่ 3 (ค่า 3)'];
+const ENC_CIRCUIT=['A1=I2 OR I3','A0=I1 OR I3'];
+function selectEnc(idx){
+  encSelected=idx;
+  for(let i=0;i<4;i++){const b=$(`enc-i${i}`);b.className=`enc-input-btn${i===idx?' active':''}`;}
+  const a1=idx>>1,a0=idx&1;
+  const e1=$('enc-a1'),e0=$('enc-a0');
+  e1.textContent=a1;e1.className=`enc-bit${a1?' on':''}`;
+  e0.textContent=a0;e0.className=`enc-bit${a0?' on':''}`;
+  $('enc-info').innerHTML=`${ENC_LABELS[idx]} active → A1=${a1}, A0=${a0} (binary: ${a1}${a0})`;
+  const circ=$('enc-circuit');
+  circ.innerHTML=`<div class="alu-box${a1?' active':''}">A1 = I2 OR I3<br><span style="font-size:0.7rem">= ${(idx===2||idx===3)?1:0}</span></div><div class="alu-arrow">|</div><div class="alu-box${a0?' active':''}">A0 = I1 OR I3<br><span style="font-size:0.7rem">= ${(idx===1||idx===3)?1:0}</span></div>`;
+}
+
+// ─── 7-SEGMENT ────────────────────────────────────────
+const SEG_DIGITS=[[1,1,1,1,1,1,0],[0,1,1,0,0,0,0],[1,1,0,1,1,0,1],[1,1,1,1,0,0,1],[0,1,1,0,0,1,1],[1,0,1,1,0,1,1],[1,0,1,1,1,1,1],[1,1,1,0,0,0,0],[1,1,1,1,1,1,1],[1,1,1,1,0,1,1]];
+const SEG_NAMES=['a','b','c','d','e','f','g'];
+const SEG_DESCS=['บน','ขวาบน','ขวาล่าง','ล่าง','ซ้ายล่าง','ซ้ายบน','กลาง'];
+let segManual=[0,0,0,0,0,0,0],currentSegDigit=0;
+
+function initSegDisplay(){
+  const btnWrap=$('seg-digit-btns');
+  for(let d=0;d<10;d++){
+    const btn=document.createElement('button');btn.className='ctrl-btn';btn.textContent=d;btn.id=`seg-digit-${d}`;btn.onclick=()=>setSegDigit(d);btnWrap.appendChild(btn);
+  }
+  const statusWrap=$('seg-status');
+  SEG_NAMES.forEach((n,i)=>{
+    const div=document.createElement('div');div.id=`seg-stat-${n}`;
+    div.style.cssText='background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px;text-align:center;font-size:0.8rem;transition:all 0.2s;cursor:pointer';
+    div.onclick=()=>toggleSegManual(i);
+    div.innerHTML=`<div style="font-family:monospace;font-weight:700">${n.toUpperCase()}</div><div style="font-size:0.65rem;color:var(--text-dim)">${SEG_DESCS[i]}</div>`;
+    statusWrap.appendChild(div);
+  });
+  // Binary row
+  const binRow=$('seg-binary-row');
+  SEG_NAMES.forEach((n,i)=>{
+    const box=document.createElement('div');box.className='seg-bit-box';box.id=`sbb-${i}`;
+    box.innerHTML=`<span>0</span><span class="seg-bit-lbl">${n}</span>`;binRow.appendChild(box);
+  });
+  // BCD table
+  const tbl=$('seg-table');
+  let th='<thead><tr><th>เลข</th>';SEG_NAMES.forEach(n=>th+=`<th>${n.toUpperCase()}</th>`);th+='<th>BCD</th></tr></thead><tbody>';
+  let tb='';
+  for(let d=0;d<10;d++){tb+=`<tr><td style="color:var(--neon-yellow);font-weight:700">${d}</td>${SEG_DIGITS[d].map(v=>`<td class="${v?'out-1':'out-0'}">${v}</td>`).join('')}<td style="font-family:monospace;color:var(--text-dim)">${d.toString(2).padStart(4,'0')}</td></tr>`;}
+  tbl.innerHTML=th+tb+'</tbody>';
+  // Manual btns
+  const manualWrap=$('seg-manual-btns');
+  SEG_NAMES.forEach((n,i)=>{const btn=document.createElement('button');btn.className='ctrl-btn';btn.id=`seg-man-${n}`;btn.textContent=`Seg ${n.toUpperCase()} (${SEG_DESCS[i]})`;btn.onclick=()=>toggleSegManual(i);manualWrap.appendChild(btn);});
+  setSegDigit(0);
+}
+
+function setSegDigit(d){
+  currentSegDigit=d;
+  document.querySelectorAll('[id^="seg-digit-"]').forEach(b=>b.className='ctrl-btn');
+  const active=$(`seg-digit-${d}`);if(active)active.className='ctrl-btn primary';
+  const segs=SEG_DIGITS[d];segManual=[...segs];updateSegDisplay(segs);
+  $('seg-info').innerHTML=`เลข <strong style="color:var(--neon-yellow)">${d}</strong> — BCD: <code>${d.toString(2).padStart(4,'0')}</code> — segment ที่ติด: ${SEG_NAMES.filter((_,i)=>segs[i]).map(n=>`<code>${n}</code>`).join(', ')}`;
+}
+function toggleSegManual(i){segManual[i]^=1;updateSegDisplay(segManual);$('seg-info').innerHTML=`Manual mode — segment ที่ติด: ${SEG_NAMES.filter((_,j)=>segManual[j]).map(n=>`<code>${n}</code>`).join(', ')||'ไม่มี'}`;}
+function updateSegDisplay(segs){
+  SEG_NAMES.forEach((n,i)=>{
+    $(`seg-${n}`).className=`seg seg-${n}${segs[i]?' on':''}`;
+    const stat=$(`seg-stat-${n}`);if(stat){stat.style.borderColor=segs[i]?'var(--neon-orange)':'var(--border)';stat.style.background=segs[i]?'rgba(255,140,0,0.1)':'var(--bg3)';}
+    const mb=$(`seg-man-${n}`);if(mb)mb.className=`ctrl-btn${segs[i]?' primary':''}`;
+    const sbb=$(`sbb-${i}`);if(sbb){sbb.className=`seg-bit-box${segs[i]?' on':''}`;sbb.querySelector('span').textContent=segs[i];}
+  });
+}
+
+// ─── ALU HALF ADDER ───────────────────────────────────
+let haState={a:0,b:0};
+function toggleHALU(inp){haState[inp]^=1;const btn=$(`ha-${inp}`);btn.textContent=haState[inp];btn.className=`toggle-btn${haState[inp]?' on':''}`;updateHALU();}
+function updateHALU(){
+  const sum=haState.a^haState.b,carry=haState.a&haState.b;
+  $('ha-sum-led').className=`output-led${sum?' on':''}`;$('ha-sum-val').textContent=sum;$('ha-sum-val').className=`output-val${sum?' on':''}`;
+  $('ha-carry-led').style.cssText=carry?'background:var(--neon-yellow);border-color:var(--neon-yellow);box-shadow:0 0 8px var(--neon-yellow)':'';
+  $('ha-carry-val').textContent=carry;$('ha-carry-val').style.color=carry?'var(--neon-yellow)':'var(--text-dim)';
+  $('ha-xor-box').className=`alu-box${sum?' active':''}`;
+  $('ha-and-box').className=`alu-box${carry?' active':''}`;
+  const key=`${haState.a}${haState.b}`;
+  ['00','01','10','11'].forEach(k=>{const r=$(`ha-row-${k}`);if(r)r.className=k===key?'highlight':'';});
+}
+
+// ─── ALU FULL ADDER ───────────────────────────────────
+let faState={a:0,b:0,c:0};
+function toggleFALU(inp){faState[inp]^=1;const btn=$(`fa-${inp==='c'?'cin':inp}`);btn.textContent=faState[inp];btn.className=`toggle-btn${faState[inp]?' on':''}`;updateFALU();}
+function updateFALU(){
+  const s=faState.a+faState.b+faState.c,sum=s%2,cout=s>=2?1:0;
+  $('fa-sum-led').className=`output-led${sum?' on':''}`;$('fa-sum-val').textContent=sum;$('fa-sum-val').className=`output-val${sum?' on':''}`;
+  $('fa-cout-led').style.cssText=cout?'background:var(--neon-yellow);border-color:var(--neon-yellow);box-shadow:0 0 8px var(--neon-yellow)':'';
+  $('fa-cout-val').textContent=cout;
+  const ab=faState.a^faState.b;
+  $('fa-ha1-box').className=`alu-box${ab?' active':''}`;
+  $('fa-ha2-box').className=`alu-box${sum?' active':''}`;
+  $('fa-or-box').className=`alu-box${cout?' active':''}`;
+  // animate carry chain
+  const carries=[0,faState.a&faState.b,(faState.a^faState.b)&faState.c,0];
+  ['cc-in','cc-0','cc-1','cc-2','cc-3','cc-out'].forEach((id,i)=>{
+    const el=$(id);if(el){el.className=`carry-cell${(i===5?cout:(carries[Math.min(i,3)]||0))?' active':''}`;};
+  });
+}
+
+// ─── SR LATCH ─────────────────────────────────────────
+let latchQ=0;
+function latchSet(){latchQ=1;updateLatch();$('latch-msg').innerHTML='✅ <strong>SET!</strong> วงจรจำค่า 1 ไว้แล้ว — ถึงปล่อย S กลับเป็น 0 ก็ยังจำอยู่';}
+function latchReset(){latchQ=0;updateLatch();$('latch-msg').innerHTML='🔄 <strong>RESET!</strong> วงจรจำค่า 0 ไว้แล้ว — นี่คือพลังของ feedback loop!';}
+function updateLatch(){
+  const qEl=$('latch-q'),qbEl=$('latch-qbar');
+  qEl.textContent=latchQ;qEl.className=`ff-state${latchQ?' one':''}`;
+  qbEl.textContent=latchQ^1;qbEl.className=`ff-state${(latchQ^1)?' one':''}`;
+}
+
+// ─── SUPPORT MODAL ────────────────────────────────────
+let bcdDecoded=false;
+function openSupport(){document.getElementById('support-modal').classList.add('open');}
+function closeSupport(e){if(e.target===document.getElementById('support-modal'))document.getElementById('support-modal').classList.remove('open');}
+
+function decodeBCD(){
+  if(bcdDecoded){
+    document.querySelectorAll('.bcd-group').forEach(g=>g.classList.remove('lit'));
+    $('decode-digits').innerHTML='';$('decode-final').textContent='';bcdDecoded=false;return;
+  }
+  const groups=document.querySelectorAll('.bcd-group');
+  const dWrap=$('decode-digits');dWrap.innerHTML='';
+  let fullNum='';
+  groups.forEach((g,i)=>{
+    const d=g.dataset.d;fullNum+=d;
+    // create digit placeholder
+    const el=document.createElement('div');el.className='dec-digit';el.id=`dd-${i}`;el.textContent=d;dWrap.appendChild(el);
+    setTimeout(()=>{
+      g.classList.add('lit');
+      const de=$(`dd-${i}`);if(de)de.classList.add('show');
+      if(i===groups.length-1){
+        setTimeout(()=>{$('decode-final').innerHTML=`เบอร์ PromptPay: <strong style="color:var(--neon-green)">${fullNum}</strong>`;},200);
+      }
+    },i*180);
+  });
+  bcdDecoded=true;
+}
+
+// ─── NAVIGATION ───────────────────────────────────────
+function navTo(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+window.addEventListener('scroll',()=>{
+  const scrollTop=window.scrollY,docHeight=document.documentElement.scrollHeight-window.innerHeight;
+  $('progress').style.width=(docHeight>0?(scrollTop/docHeight)*100:0)+'%';
+  const sections=['hero','s-binary','s-adder-home','s-gates','s-connect','s-decoder','s-encoder','s-7seg','s-alu','s-memory'];
+  let active=0;
+  sections.forEach((sid,i)=>{const el=document.getElementById(sid);if(el&&el.getBoundingClientRect().top<window.innerHeight/2)active=i;});
+  document.querySelectorAll('.nav-btn').forEach((btn,i)=>btn.classList.toggle('active',i===active));
+});
+
+// ─── INIT ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  initBinary();initGates();initNandBuilder();initDecoder();initSegDisplay();initAdder();
+  updateDec24();selectEnc(0);updateHALU();updateFALU();
+  setTimeout(()=>drawXORCanvas(),100);
+});
+</script>
+</body>
+</html>

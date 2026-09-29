@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thanakorn Damrikitjaroen | Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f8fafc;--ink:#0b0f1a;--mute:#5b6473;--blue:#0a5cff;--cyan:#00bcd4;--glass:rgba(255,255,255,.45);--line:rgba(10,20,40,.12);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Helvetica,Arial,"Kanit","Prompt",sans-serif;line-height:1.6}
+#bg-pattern{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;background-color:#f8fafc;background-image:radial-gradient(circle at 50% 0%,rgba(10,92,255,.08) 0%,transparent 60%),radial-gradient(rgba(10,20,40,.12) 1px,transparent 1px),linear-gradient(to right,rgba(10,20,40,.03) 1px,transparent 1px),linear-gradient(to bottom,rgba(10,20,40,.03) 1px,transparent 1px);background-size:100% 100%,24px 24px,40px 40px,40px 40px;background-attachment:fixed}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+main,footer{position:relative;z-index:1}
+.glass{background:var(--glass);backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);border:1px solid rgba(255,255,255,.6);box-shadow:0 8px 30px rgba(10,20,40,.06),inset 0 1px 1px rgba(255,255,255,.6)}
+header{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:20;border-radius:999px;padding:6px;display:flex;gap:2px;max-width:calc(100% - 20px);background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.25)),radial-gradient(circle at 50% 0%,rgba(10,92,255,.06),transparent 70%);backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);border:1px solid rgba(255,255,255,.65);box-shadow:0 10px 32px rgba(10,20,40,.08),inset 0 1px 2px rgba(255,255,255,.9)}
+header a{color:var(--ink);text-decoration:none;font-size:14px;padding:8px 16px;border-radius:999px;transition:background .2s,color .2s;white-space:nowrap}
+header a:hover{background:var(--ink);color:#fff}
+section{min-height:100vh;padding:110px 24px 70px;display:flex;flex-direction:column;justify-content:center;max-width:1100px;margin:0 auto}
+.two{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center}
+h1{font-size:clamp(3.2rem,10vw,7.5rem);line-height:.95;margin:0;letter-spacing:-.04em;font-weight:800}
+.last{font-size:clamp(1.3rem,3vw,2rem);margin:10px 0 28px;color:var(--mute);letter-spacing:.02em}
+.bio p{margin:4px 0;color:var(--mute)}
+.bio .tag{margin-top:18px;color:var(--ink);font-size:1.15rem;border-left:3px solid var(--blue);padding-left:14px}
+.avatar-wrap{display:flex;justify-content:center}
+.avatar{width:min(320px,70vw);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:4rem;font-weight:800;letter-spacing:-.04em;color:var(--ink);background:radial-gradient(circle at 30% 25%,#fff,#e6f0ff 60%,#cfe0ff);border:1px solid var(--line);box-shadow:0 0 0 10px rgba(255,255,255,.5),0 20px 60px rgba(10,92,255,.15);cursor:crosshair;transition:transform .4s}
+.avatar:hover{transform:scale(1.03)}
+h2{font-size:clamp(1.8rem,4vw,2.6rem);letter-spacing:-.03em;margin:0 0 6px}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.2em;color:var(--blue);margin-bottom:8px}
+h3{margin:34px 0 14px;font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.card{border-radius:18px;overflow:hidden;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;transition:transform .3s,box-shadow .3s}
+.card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(10,92,255,.15)}
+.thumb{position:relative;aspect-ratio:9/12;max-height:300px;width:100%;overflow:hidden;display:grid;place-items:center;color:#fff;font-weight:700;letter-spacing:.15em;font-size:13px}
+.thumb-img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.t1{background:linear-gradient(135deg,#0b0f1a,#0a5cff)}
+.t2{background:linear-gradient(135deg,#0b0f1a,#00bcd4)}
+.card .meta{padding:16px 18px}
+.card .meta b{display:block}
+.card .meta span{color:var(--mute);font-size:14px}
+.acc{border-radius:18px;overflow:hidden}
+.acc-head{width:100%;display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:none;border:0;font:inherit;font-size:1.15rem;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
+.chev{width:12px;height:12px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:rotate(45deg);transition:transform .4s}
+.acc.open .chev{transform:rotate(-135deg)}
+.acc-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s ease}
+.acc.open .acc-body{grid-template-rows:1fr}
+.acc-inner{overflow:hidden}
+.acc-pad{padding:0 24px 24px;color:var(--mute)}
+.acc-pad h4{color:var(--ink);margin:16px 0 6px}
+.acc-pad ul{margin:6px 0;padding-left:20px}
+.acc-pad ul ul{margin:4px 0 6px;padding-left:20px;list-style-type:circle}
+.btn{display:inline-block;margin-top:18px;padding:11px 26px;background:var(--ink);color:#fff;text-decoration:none;border-radius:999px;font-weight:600;font-size:14px;border:0;cursor:pointer;transition:background .2s,transform .2s}
+.btn:hover{background:var(--blue);transform:translateY(-2px)}
+#insp{align-items:center;text-align:center}
+blockquote{margin:0;font-size:clamp(1.9rem,5.2vw,3.8rem);line-height:1.15;font-weight:700;letter-spacing:-.03em;max-width:900px}
+blockquote em{font-style:normal;color:var(--blue)}
+.thai{margin-top:26px;color:var(--mute)}
+footer{padding:60px 24px 50px;text-align:center;border-top:1px solid var(--line);background:rgba(255,255,255,.7);backdrop-filter:blur(10px)}
+#contact{min-height:auto}
+.links{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:22px}
+.links a{color:var(--ink);text-decoration:none;padding:10px 22px;border:1px solid var(--line);border-radius:999px;font-size:14px;transition:all .2s}
+.links a:hover{background:var(--ink);color:#fff}
+small{display:block;margin-top:34px;color:var(--mute)}
+.modal{position:fixed;inset:0;z-index:50;display:none;place-items:center;padding:20px;background:rgba(10,20,40,.25);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.modal.show{display:grid;animation:fade .3s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.mbox{position:relative;width:min(860px,100%);max-height:90vh;overflow:auto;display:grid;grid-template-columns:1fr 1.2fr;border-radius:22px;background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.7);box-shadow:0 30px 80px rgba(10,20,40,.25)}
+.mbox .thumb{height:100%;max-height:none;aspect-ratio:auto;min-height:280px}
+.mtext{padding:30px 28px;background:rgba(255,255,255,.96)}
+.mtext h3{margin:0 0 10px;text-transform:none;letter-spacing:-.02em;font-size:1.5rem;color:var(--ink)}
+.mtext p{color:var(--mute);margin:0 0 14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stats div{border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.stats b{display:block;font-size:1.2rem}
+.stats span{font-size:12px;color:var(--mute)}
+.x{position:absolute;top:12px;right:14px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:18px;line-height:1;z-index:2}
+@media(max-width:760px){.two,.mbox,.grid{grid-template-columns:1fr}.avatar-wrap{order:-1}header a{padding:8px 10px;font-size:13px}.mbox .thumb{min-height:200px}}
+</style>
+</head>
+<body>
+<div id="bg-pattern"></div>
+<canvas id="bg"></canvas>
+
+<header class="glass">
+  <a href="#me">Me</a><a href="#highlight">Highlight</a><a href="#insp">Inspiration</a><a href="#contact">Contact</a>
+</header>
+
+<main>
+  <section id="me">
+    <div class="two">
+      <div class="bio">
+        <h1>Thanakorn</h1>
+        <div class="last">Damrikitjaroen</div>
+        <p>Currently studying at KMUTNB Prachinburi Campus</p>
+        <p>Department of Information and Network Engineering (INE)</p>
+        <p class="tag">ปัจจุบัน : ชั้นปี 1</p>
+        <p class="tag">เด็กคนนึงที่ชื่นชอบคอมพิวเตอร์</p>
+      </div>
+      <div class="avatar-wrap"><div class="avatar" id="avatar">TD</div></div>
+    </div>
+  </section>
+
+  <section id="highlight">
+    <div class="eyebrow">Featured Works</div>
+    <h2>Highlight</h2>
+
+    <h3>TikTok Content</h3>
+    <div class="grid" id="vids"></div>
+
+    <h3>Mini-Web Projects (Vide Coding) [ai 100%]</h3>
+    
+    <div class="acc glass" id="acc">
+      <button class="acc-head" aria-expanded="false">ขั้นตอนการทำงานของ Python<span class="chev"></span></button>
+      <div class="acc-body"><div class="acc-inner"><div class="acc-pad">
+        <p>เว็บแอปพลิเคชันจำลองการทำงานของ Python แบบ Step-by-step ที่ทำงานบนเว็บเบราว์เซอร์ 100% โดยจะรันโค้ดทีละบรรทัด พร้อมแสดงไฮไลท์ตำแหน่งโค้ด อัปเดตสถานะตัวแปรแบบเรียลไทม์ และแสดงผลลัพธ์ทันที เพื่อช่วยให้ผู้เริ่มต้นเข้าใจตรรกะของโปรแกรมได้ง่ายขึ้น</p>
+        <h4>สถาปัตยกรรมระบบ (Architecture)</h4>
+        <ul>
+          <li>
+            Frontend:
+            <ul>
+              <li>Code Editor & Line Highlighter: ช่องพิมพ์โค้ดพร้อมแถบสีไฮไลท์เน้นบรรทัดที่กำลังทำงาน</li>
+              <li>Control Panel: ปุ่มควบคุมการรันโค้ด (Run, Pause, Next Step, Reset) และแถบปรับความเร็ว</li>
+              <li>Variables & Output Inspector: แผงแสดงค่าตัวแปรแบบเรียลไทม์ (กะพริบสีเมื่อค่าเปลี่ยน) และช่องแสดงผลลัพธ์</li>
+            </ul>
+          </li>
+          <li>
+            Execution layer: step-by-step interpreter that records state after every line
+            <ul>
+              <li>Parser & Compiler: อ่านและแปลงโค้ด Python (รองรับโครงสร้างพื้นฐาน เช่น Variable, Loop, If-Else, List, Dict)</li>
+              <li>Step-by-Step Interpreter: ใช้ JavaScript Generator คอยหยุดและส่งสถานะบรรทัด/ตัวแปรออกมาในทุกๆ ขั้นตอนก่อนไปบรรทัดถัดไป</li>
+            </ul>
+          </li>
+        </ul>
+        <a class="btn" href="Mini_web/python-visualizer.html" target="_blank" rel="noopener">Try</a>
+      </div></div></div>
+    </div>
+
+    <div class="acc glass" style="margin-top:16px;">
+      <button class="acc-head" aria-expanded="false">พื้นฐานวิทยาการคอมพิวเตอร์และดิจิทัลลอจิก [Logic gate, เลขฐาน]<span class="chev"></span></button>
+      <div class="acc-body"><div class="acc-inner"><div class="acc-pad">
+        <p>สื่อการเรียนรู้อินเทอร์แอคทีฟ (Interactive Learning Web Application) เพื่อสอนพื้นฐานวิทยาการคอมพิวเตอร์และดิจิทัลลอจิก ตั้งแต่ระบบเลขฐานสอง ไบนารีบิต ไปจนถึงการทำงานของ CPU ให้ผู้เรียนได้ทดลองเปิด/ปิดสวิตช์ กดปุ่ม และเห็นการเปลี่ยนแปลงของสัญญาณไฟฟ้า LED หรือผลลัพธ์แบบเรียลไทม์</p>
+        <h4>ลำดับขั้นตอนการทำงาน (Execution Steps)</h4>
+        <ul>
+          <li>เนื้อหาหลักที่ผู้เรียนจะได้ทดลองเล่น (9 บทเรียน)
+            <ol>
+              <li>ระบบตัวเลขฐานสอง (Binary System): สลับสวิตช์ 8 บิต (1 ไบต์) เพื่อดูการแปลงเป็นเลขฐานสิบ</li>
+              <li>เครื่องบวกเลข 8 บิต (8-bit Adder): จำลองการคำนวณบวกเลขฐานสอง และแสดงสถานะ Overflow</li>
+              <li>ประตูตรรกะพื้นฐาน (Logic Gates): ทดลองป้อนค่าเข้าเกต AND, OR, NOT, NAND, NOR, XOR, XNOR พร้อมตารางความจริง</li>
+              <li>การเชื่อมต่อวงจร (NAND Logic): สาธิตการใช้ NAND Gate ซึ่งเป็น Universal Gate นำมาต่อรวมกันเพื่อสร้างวงจรซับซ้อนอย่าง XOR</li>
+              <li>วงจรถอดรหัส (Decoder): แปลงรหัสไบนารีให้กลายเป็นสัญญาณเลือกตำแหน่ง</li>
+              <li>วงจรเข้ารหัส (Encoder): แปลงสัญญาณการกดปุ่มให้กลับกลายเป็นรหัสไบนารี</li>
+              <li>จอแสดงผล 7 ส่วน (7-Segment Display): ถอดรหัส BCD 4 บิต เพื่อเปิดหลอด LED ตัวเลข 0–9</li>
+              <li>หน่วยคำนวณและตรรกะ (ALU): จำลองส่วนคำนวณของ CPU ตั้งแต่ Half Adder, Full Adder จนถึง 4-bit Adder</li>
+              <li>หน่วยความจำ (SR Latch Memory): เรียนรู้การเก็บบันทึกข้อมูล (0 หรือ 1) ด้วย Feedback Loop ของประตูตรรกะ</li>
+            </ol>
+          </li>
+        <a class="btn" href="Mini_web/logic-gate-v2.html" target="_blank" rel="noopener">Try</a>
+      </div></div></div>
+    </div>
+    
+  </section>
+
+  <section id="insp">
+    <div class="eyebrow">Inspiration</div>
+    <blockquote>&ldquo;Hard is good. Hard is what you must do. If it were easy, <em>anyone could do it.</em>&rdquo;</blockquote>
+    <div class="thai">ยากสิยิ่งดี ยากสิยิ่งต้องทำ ถ้าง่ายใครก็ทำได้</div>
+  </section>
+</main>
+
+<footer id="contact">
+  <div class="eyebrow">Contact</div>
+  <h2>Let's connect</h2>
+  <div class="links">
+    <a href="mailto:you@example.com">Email</a>
+    <a href="#" target="_blank" rel="noopener">TikTok</a>
+    <a href="#" target="_blank" rel="noopener">GitHub</a>
+    <a href="#" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <small>Thanakorn Damrikitjaroen</small>
+</footer>
+
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="mbox">
+    <button class="x" id="mx" aria-label="Close">&times;</button>
+    <div class="thumb" id="mthumb"></div>
+    <div class="mtext">
+      <h3 id="mtitle"></h3>
+      <p id="mdesc"></p>
+      <div class="stats"><div><b id="s1"></b><span>Views</span></div><div><b id="s2"></b><span>Likes</span></div><div><b id="s3"></b><span>Shares</span></div></div>
+      <a class="btn" id="mlink" href="#" target="_blank" rel="noopener">Watch on TikTok</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---- Content (edit here) ---- */
+const VIDEOS=[
+ {title:"Python to Roblox [BABFT]",img:"image/Python.png",cls:"t1",desc:"[หลักการทำงาน : python คำนวณสีแต่ละ pixel จากภาพที่ถ่าย ส่งข้อมูลภาพในรูปแบบการกดปุ่มบนคีย์บอร์ด 5 bit 32สี ทีละpixel และส่งไปให้ logic gate ในเกมที่เตรียมไว้] จริงๆคลิปนี้มีได้เพราะคลิป Full Adder ก่อนหน้า เพราะยอดวิวเยอะมาก จึงมีกำลังใจในการคิดและทำ Project นี้ ตอนคิด Project นี้แรกๆ คิดว่าไม่มีใครเคยทำแน่นอน เลยเริ่มทำ กว่าจะได้ Project นี้มา ไม่ง่ายเลย เริ่มๆทำแรกๆก็พอไหวอยู่ พอคิดได้อยู่ว่าตรงไหนควรต่อ logic gate ยังไง พอทำไปได้เรื่อยๆ ก็เริ่มเจอปัญหาทั้ง ทำใหญ่เกินก็ไม่ได้ sever รับไม่ไหว เลยต้องลดขนาด พอทำไปได้อีกสักพักก็ เจอปัญหาในการต่อlogic ไม่รู้จะต่อยังไง ปรึกษา ai อยู่นานจนทำต่อได้ แล้วก็มาเจอปัญหาอีกว่า ถ้าเกมมีอาการกระตุก ข้อมูล logic gate จะเพื้ยน จนแก้มาได้ จนเสร็จ แล้วได้ลง TikTok จนยอดวิวเยอะอีกรอบ นี่เลยเป็นอีกหนึ่งผลงานที่ผมภูมิใจ",views:"800k++",likes:"100k++",shares:"20k++",url:"https://www.tiktok.com/@pondpond_543/video/7678289830761090325?is_from_webapp=1&sender_device=pc"},
+ {title:"Full Adder",img:"image/Full_Adder.png",cls:"t2",desc:"Short description of this video. Replace with what the content covers and why it matters.",views:"300k++",likes:"20k++",shares:"4k++",url:"https://www.tiktok.com/@pondpond_543/video/7661595322770033941?is_from_webapp=1&sender_device=pc"}
+];
+
+/* ---- Cards + modal ---- */
+const $=id=>document.getElementById(id),modal=$('modal');
+VIDEOS.forEach((v,i)=>{const b=document.createElement('button');b.className='card glass';const imgHtml=v.img?`<img src="${v.img}" alt="${v.title}" class="thumb-img">`:`VIDEO 0${i+1}`;b.innerHTML=`<div class="thumb ${v.cls}">${imgHtml}</div><div class="meta"><b>${v.title}</b><span>Tap to view details</span></div>`;b.onclick=()=>{$('mthumb').className='thumb '+v.cls;$('mthumb').innerHTML=v.img?`<img src="${v.img}" alt="${v.title}" class="thumb-img">`:`VIDEO 0${i+1}`;$('mtitle').textContent=v.title;$('mdesc').textContent=v.desc;$('s1').textContent=v.views;$('s2').textContent=v.likes;$('s3').textContent=v.shares;$('mlink').href=v.url;modal.classList.add('show');modal.setAttribute('aria-hidden','false')};$('vids').appendChild(b)});
+const close=()=>{modal.classList.remove('show');modal.setAttribute('aria-hidden','true')};
+$('mx').onclick=close;modal.onclick=e=>{if(e.target===modal)close()};addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+document.querySelectorAll('.acc').forEach(a=>{const b=a.querySelector('.acc-head');if(b)b.onclick=function(){const o=a.classList.toggle('open');this.setAttribute('aria-expanded',o)}});
+
+/* ---- Background canvas ---- */
+const cv=$('bg'),c=cv.getContext('2d');let W,H,lines=[],gates=[],waves=[],last=performance.now();
+function build(){const D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;c.setTransform(D,0,0,D,0,0);
+ const N=W<700?14:22,P=Math.ceil(W/22)+1;lines=[];
+ for(let i=0;i<N;i++)lines.push({by:(i+.5)/N*H,ph:Math.random()*6.28,f:.0015+Math.random()*.003,f2:.006+Math.random()*.004,a:20+Math.random()*50,s:.3+Math.random()*.5,P,x:new Float32Array(P),y:new Float32Array(P),k:new Float32Array(P)});
+ gates=[];const G=W<700?16:30,T=['AND','OR','NOT','XOR'];
+ for(let i=0;i<G;i++)gates.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,t:T[i%4],s:20+Math.random()*16,r:(Math.random()-.5)*.6,ph:Math.random()*6.28})}
+function gate(g,t){const{s}=g;c.save();c.translate(g.x,g.y);c.rotate(g.r);c.scale(s,s);c.lineWidth=1.3/s;
+ c.globalAlpha=.3+.2*Math.sin(t+g.ph);c.strokeStyle='#00bcd4';c.shadowColor='#00d4ff';c.shadowBlur=10;c.beginPath();
+ const or=()=>{c.moveTo(0,-.5);c.quadraticCurveTo(.6,-.5,1,0);c.quadraticCurveTo(.6,.5,0,.5);c.quadraticCurveTo(.3,0,0,-.5)};
+ if(g.t==='AND'){c.moveTo(-.3,-.25);c.lineTo(0,-.25);c.moveTo(-.3,.25);c.lineTo(0,.25);c.moveTo(0,-.5);c.lineTo(.5,-.5);c.arc(.5,0,.5,-Math.PI/2,Math.PI/2);c.lineTo(0,.5);c.closePath();c.moveTo(1,0);c.lineTo(1.3,0)}
+ else if(g.t==='OR'){c.moveTo(-.3,-.25);c.lineTo(.08,-.25);c.moveTo(-.3,.25);c.lineTo(.08,.25);or();c.moveTo(1,0);c.lineTo(1.3,0)}
+ else if(g.t==='XOR'){c.moveTo(-.3,-.25);c.lineTo(-.05,-.25);c.moveTo(-.3,.25);c.lineTo(-.05,.25);or();c.moveTo(-.15,-.5);c.quadraticCurveTo(.15,0,-.15,.5);c.moveTo(1,0);c.lineTo(1.3,0)}
+ else{c.moveTo(-.3,0);c.lineTo(0,0);c.moveTo(0,-.5);c.lineTo(0,.5);c.lineTo(.85,0);c.closePath();c.moveTo(.99,0);c.arc(.92,0,.07,0,6.29);c.moveTo(.99,0);c.lineTo(1.3,0)}
+ c.stroke();c.restore()}
+function frame(now){const dt=Math.min(now-last,50)/16.7;last=now;const t=now/1000;c.clearRect(0,0,W,H);
+ waves=waves.filter(w=>{w.r+=6*dt;return w.r<w.max});
+ for(const L of lines){for(let j=0;j<L.P;j++){let x=j*W/(L.P-1),y=L.by+Math.sin(x*L.f+t*L.s+L.ph)*L.a+Math.sin(x*L.f2-t*L.s*1.3+L.ph)*L.a*.4,k=0;
+  for(const w of waves){const dx=x-w.x,dy=y-w.y,d=Math.hypot(dx,dy)||1,e=Math.abs(d-w.r);if(e<w.w){const q=(1-e/w.w)*(1-w.r/w.max);x+=dx/d*q*70;y+=dy/d*q*70;if(q>k)k=q}}
+  L.x[j]=x;L.y[j]=y;L.k[j]=k}
+  c.strokeStyle='rgba(0,0,0,.55)';c.lineWidth=1.1;c.beginPath();c.moveTo(L.x[0],L.y[0]);for(let j=1;j<L.P;j++)c.lineTo(L.x[j],L.y[j]);c.stroke();
+  for(let j=1;j<L.P;j++){const k=Math.max(L.k[j],L.k[j-1]);if(k>.04){c.strokeStyle=`rgba(0,90,255,${Math.min(1,k*1.6)})`;c.lineWidth=1.6+k*1.6;c.beginPath();c.moveTo(L.x[j-1],L.y[j-1]);c.lineTo(L.x[j],L.y[j]);c.stroke()}}}
+ for(const g of gates){g.x+=g.vx*dt;g.y+=g.vy*dt;if(g.x<-50)g.x=W+40;if(g.x>W+50)g.x=-40;if(g.y<-50)g.y=H+40;if(g.y>H+50)g.y=-40;gate(g,t)}
+ requestAnimationFrame(frame)}
+addEventListener('resize',build);build();requestAnimationFrame(frame);
+
+/* ---- Avatar wave ---- */
+const av=$('avatar');let lastEmit=0;
+const emitCenter=()=>{const r=av.getBoundingClientRect();waves.push({x:r.left+r.width/2,y:r.top+r.height/2,r:20,w:80,max:460})};
+av.addEventListener('mouseenter',e=>{emitCenter();lastEmit=performance.now()});
+av.addEventListener('mousemove',e=>{const n=performance.now();if(n-lastEmit>320){emitCenter();lastEmit=n}});
+av.addEventListener('touchstart',e=>{emitCenter()},{passive:true});
+</script>
+</body>
+</html>
