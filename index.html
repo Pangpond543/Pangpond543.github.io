@@ -346,7 +346,7 @@ function setTheme(isDark){
 if(themeMoon)themeMoon.onclick=()=>setTheme(true);
 if(themeSun)themeSun.onclick=()=>setTheme(false);
 const savedTheme=localStorage.getItem('theme');
-if(savedTheme==='dark'||(!savedTheme&&window.matchMedia('(prefers-color-scheme: dark)').matches)){
+if(savedTheme==='dark'){
  setTheme(true);
 }
 
