@@ -109,6 +109,7 @@ body.dark-mode .links a .instagram-svg{filter:invert(1)}
 body.dark-mode .links a.steam-link:hover .steam-svg{filter:invert(0)}
 body.dark-mode .links a:hover .instagram-svg{filter:invert(0)}
 .discord-card{display:inline-flex;align-items:center;gap:12px;margin-top:20px;padding:8px 16px 8px 18px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .2s ease}
+@media(max-width:700px){.discord-card{backdrop-filter:none;-webkit-backdrop-filter:none}}
 .discord-left{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--ink)}
 .discord-svg{width:20px;height:20px;fill:#5865F2;flex-shrink:0}
 .discord-name{font-family:Consolas,Monaco,monospace;letter-spacing:.02em}
@@ -307,8 +308,8 @@ $('mx').onclick=close;modal.onclick=e=>{if(e.target===modal)close()};addEventLis
 document.querySelectorAll('.acc').forEach(a=>{const b=a.querySelector('.acc-head');if(b)b.onclick=function(){const o=a.classList.toggle('open');this.setAttribute('aria-expanded',o)}});
 
 /* ---- Background canvas ---- */
-const cv=$('bg'),c=cv.getContext('2d');let W,H,lines=[],gates=[],waves=[],last=performance.now();
-function build(){const D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;c.setTransform(D,0,0,D,0,0);
+const cv=$('bg'),c=cv.getContext('2d');let W,H,lines=[],gates=[],waves=[],last=performance.now(),lastRender=0;
+function build(){W=innerWidth;H=innerHeight;const D=W<700?1:Math.min(devicePixelRatio||1,2);cv.width=W*D;cv.height=H*D;c.setTransform(D,0,0,D,0,0);
  const N=W<700?14:22,P=Math.ceil(W/22)+1;lines=[];
  for(let i=0;i<N;i++)lines.push({by:(i+.5)/N*H,ph:Math.random()*6.28,f:.0015+Math.random()*.003,f2:.006+Math.random()*.004,a:20+Math.random()*50,s:.3+Math.random()*.5,P,x:new Float32Array(P),y:new Float32Array(P),k:new Float32Array(P)});
  gates=[];const G=W<700?16:30,T=['AND','OR','NOT','XOR'];
@@ -322,7 +323,10 @@ function gate(g,t){const{s}=g;c.save();c.translate(g.x,g.y);c.rotate(g.r);c.scal
  else{c.moveTo(-.3,0);c.lineTo(0,0);c.moveTo(0,-.5);c.lineTo(0,.5);c.lineTo(.85,0);c.closePath();c.moveTo(.99,0);c.arc(.92,0,.07,0,6.29);c.moveTo(.99,0);c.lineTo(1.3,0)}
  c.stroke();c.restore()}
 let darkProg=0;
-function frame(now){const dt=Math.min(now-last,50)/16.7;last=now;const t=now/1000;c.clearRect(0,0,W,H);
+function frame(now){const mobile=W<700,frameInterval=1000/50;
+ if(mobile&&now-lastRender<frameInterval){requestAnimationFrame(frame);return}
+ lastRender=mobile?now-((now-lastRender)%frameInterval):now;
+ const dt=Math.min(now-last,50)/16.7;last=now;const t=now/1000;c.clearRect(0,0,W,H);
  const isDark=document.body.classList.contains('dark-mode');
  const targetDark=isDark?1:0;
  darkProg+=(targetDark-darkProg)*0.04;
